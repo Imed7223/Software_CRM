@@ -3,10 +3,19 @@ Configuration de l'application
 """
 import os
 from dotenv import load_dotenv
+import sentry_sdk
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
 
 # Charger les variables d'environnement
 load_dotenv()
 
+def init_sentry():
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN"),
+        integrations=[SqlalchemyIntegration()],
+        traces_sample_rate=1.0,
+    )
 
 class Config:
     """Configuration de l'application"""
@@ -20,7 +29,7 @@ class Config:
     LOG_LEVEL = os.getenv("LOG_LEVEL", "ERROR")
 
     # Application
-    APP_NAME = "Epicevents CRM"
+    APP_NAME = "Software CRM"
     APP_VERSION = "1.0.0"
 
     @classmethod

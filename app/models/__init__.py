@@ -1,6 +1,6 @@
-from .user import User, Department
-from .client import Client
+from .users import User, Department
+from .clients import Client
 from .contracts import Contract
-from .event import Event
+from .events import Event
 
 __all__ = ['User', 'Department', 'Client', 'Contract', 'Event']

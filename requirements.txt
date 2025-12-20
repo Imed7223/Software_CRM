@@ -3,4 +3,4 @@ psycopg2-binary==2.9.9
 bcrypt==4.1.2
 python-dotenv==1.0.0
 colorama==0.4.6
-sentry-sdk[flask]==1.15.0
+sentry-sdk==1.40.0
