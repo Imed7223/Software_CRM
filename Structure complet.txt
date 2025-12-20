@@ -1,0 +1,40 @@
+Software-CRM/
+├── 📂 app/
+│   ├── 📂 models/
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── client.py
+│   │   ├── contract.py
+│   │   └── event.py
+│   ├── 📂 crud/
+│   │   ├── __init__.py
+│   │   ├── crud_users.py
+│   │   ├── crud_clients.py
+│   │   ├── crud_contracts.py
+│   │   └── crud_events.py
+│   ├── 📂 database/
+│   │   ├── __init__.py
+│   │   └── database.py
+│   ├── 📂 utils/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── validators.py
+│   │   └── logging_config.py
+│   └── 📂 menus/
+│       ├── __init__.py
+│       ├── main_menu.py
+│       ├── users_menu.py
+│       ├── clients_menu.py
+│       ├── contracts_menu.py
+│       └── events_menu.py
+├── 📂 tests/
+│   ├── __init__.py
+│   ├── test_users.py
+│   ├── test_clients.py
+│   ├── test_contracts.py
+│   └── test_events.py
+├── 📜 main.py
+├── 📜 requirements.txt
+├── 📜 config.py
+├── 📜 .env.example
+└── 📜 README.md
