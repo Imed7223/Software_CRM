@@ -13,7 +13,7 @@ class Client(Base):
     phone = Column(String, nullable=False)
     company_name = Column(String, nullable=False)
     created_date = Column(DateTime, default=func.now())
-
+    last_contact = Column(DateTime, default=func.now(), nullable=False)
     # FK
     commercial_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
