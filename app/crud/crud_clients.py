@@ -78,3 +78,35 @@ def delete_client(db: Session, client_id: int):
 def get_clients_by_commercial(db: Session, commercial_id: int):
     """Obtenir les clients d'un commercial"""
     return db.query(Client).filter(Client.commercial_id == commercial_id).all()
+
+
+def search_clients(db: Session, name: str = None, company: str = None,
+                   email: str = None, commercial_id: int = None):
+    """Recherche avancée de clients"""
+    query = db.query(Client)
+
+    if name:
+        query = query.filter(Client.full_name.ilike(f"%{name}%"))
+
+    if company:
+        query = query.filter(Client.company_name.ilike(f"%{company}%"))
+
+    if email:
+        query = query.filter(Client.email.ilike(f"%{email}%"))
+
+    if commercial_id:
+        query = query.filter(Client.commercial_id == commercial_id)
+
+    return query.order_by(Client.full_name).all()
+
+
+def get_clients_without_contract(db: Session):
+    """Obtenir les clients sans contrat"""
+    return db.query(Client).filter(~Client.contracts.any()).all()
+
+
+def get_clients_last_contact_before(db: Session, days: int = 30):
+    """Obtenir les clients sans contact depuis X jours"""
+    from datetime import datetime, timedelta
+    cutoff_date = datetime.now() - timedelta(days=days)
+    return db.query(Client).filter(Client.last_contact <= cutoff_date).all()
