@@ -9,9 +9,9 @@ import sys
 # Ajouter le répertoire parent au path pour les imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.database.database import init_db
-from app.utils.sentry_config import init_sentry
 from app.utils.logging_config import setup_logging, log_error
 from app.menus.main_menu import main_menu
+from init_database import create_initial_data
 
 
 def init_app():
@@ -40,3 +40,4 @@ if __name__ == "__main__":
 
     init_db()
     main_menu()
+    create_initial_data()
