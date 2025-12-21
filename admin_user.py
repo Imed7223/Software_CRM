@@ -1,4 +1,4 @@
-# Exécuter ce script
+'''# Exécuter ce script
 from app.database.database import SessionLocal
 from app.crud import crud_users
 
@@ -17,4 +17,4 @@ try:
 except Exception as e:
     print(f"❌ Erreur: {e}")
 finally:
-    db.close()
+    db.close()'''

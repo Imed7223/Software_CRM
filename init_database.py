@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datetime import datetime
-from app.database.database import SessionLocal, init_db
+from app.database.database import SessionLocal
 from app.models.users import User, Department
 from app.models.clients import Client
 from app.models.contracts import Contract
@@ -16,11 +16,30 @@ from app.models.events import Event
 from app.utils.auth import hash_password
 
 
+def check_data_exists(db):
+    """Vérifie si des données existent déjà"""
+    # Vérifier les utilisateurs
+    user_count = db.query(User).count()
+    if user_count > 0:
+        print(f"⚠️  {user_count} utilisateurs existent déjà dans la base")
+        return True
+
+    return False
+
+
 def create_initial_data():
     """Crée les données initiales pour la démonstration"""
     db = SessionLocal()
 
     try:
+        # Vérifier si des données existent déjà
+        if check_data_exists(db):
+            response = input("Voulez-vous quand même réinitialiser les données ? (o/n): ")
+            if response.lower() != 'o':
+                print("❌ Annulé")
+                return
+
+        print("🔄 Création des données de démonstration...")
         # 1. Créer les utilisateurs
         users_data = [
             {
@@ -83,6 +102,17 @@ def create_initial_data():
 
         users = {}
         for user_data in users_data:
+            # Vérifier si l'utilisateur existe déjà
+            existing = db.query(User).filter(
+                (User.employee_id == user_data['employee_id']) |
+                (User.email == user_data['email'])
+            ).first()
+
+            if existing:
+                print(f"⚠️  Utilisateur {user_data['email']} existe déjà")
+                users[user_data['employee_id']] = existing
+                continue
+
             user = User(
                 employee_id=user_data['employee_id'],
                 full_name=user_data['full_name'],
@@ -94,6 +124,8 @@ def create_initial_data():
             db.commit()
             db.refresh(user)
             users[user_data['employee_id']] = user
+
+        print(f"✅ {len(users)} utilisateurs créés")
 
         # 2. Créer les clients
         clients_data = [
@@ -371,13 +403,10 @@ def create_initial_data():
         db.close()
 
 
-if __name__ == "__main__":
+'''if __name__ == "__main__":
     print("🔄 Initialisation de la base de données Epicevents CRM...")
-
-    # Créer les tables
-    init_db()
 
     # Créer les données initiales
     create_initial_data()
 
-    print("\n🎉 Installation terminée! Lancez l'application avec: python main.py")
+    print("\n🎉 Installation terminée! Lancez l'application avec: python main.py")'''

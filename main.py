@@ -8,16 +8,16 @@ import sys
 
 # Ajouter le répertoire parent au path pour les imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app.database.database import init_db
-from app.utils.logging_config import setup_logging, log_error
+from app.utils.logging_config import setup_logging
 from app.menus.main_menu import main_menu
-from init_database import create_initial_data
 
 
 def init_app():
     """Initialise l'application"""
     # Configurer le logging
-    setup_logging()
+    logger = setup_logging()
 
     # Vérifier les variables d'environnement
     if not os.getenv("DATABASE_URL"):
@@ -29,15 +29,40 @@ def init_app():
     print("      EPICEVENTS CRM - Gestion Clientèle")
     print("=" * 50)
 
-logger = setup_logging()
+    return logger
 
-try:
-    1 / 0
-except Exception as e:
-    log_error("Erreur de test Sentry", e)
 
 if __name__ == "__main__":
+    # Initialiser l'application
+    logger = init_app()
 
-    init_db()
+    # Vérifier si les tables existent déjà
+    from app.database.database import SessionLocal, Base, engine
+    from sqlalchemy import inspect
+
+    db = SessionLocal()
+    try:
+        inspector = inspect(engine)
+        tables_exist = inspector.get_table_names()
+
+        if not tables_exist:
+            print("🔄 Création des tables...")
+            init_db()
+
+            # Demander si on veut créer des données de démonstration
+            response = input("📊 Voulez-vous créer des données de démonstration ? (o/n): ")
+            if response.lower() == 'o':
+                from init_database import create_initial_data
+
+                create_initial_data()
+        else:
+            print("✅ Base de données déjà initialisée")
+
+    except Exception as e:
+        logger.error(f"Erreur lors de l'initialisation: {e}")
+        print(f"❌ Erreur: {e}")
+    finally:
+        db.close()
+
+    # Lancer le menu principal
     main_menu()
-    create_initial_data()

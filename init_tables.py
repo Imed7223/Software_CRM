@@ -1,4 +1,4 @@
-from app.database.database import init_db
+'''from app.database.database import init_db
 
 init_db()
-print("✅ Toutes les tables ont été créées")
+print("✅ Toutes les tables ont été créées")'''
