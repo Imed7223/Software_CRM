@@ -1,12 +1,13 @@
 """
-Configuration Sentry pour la journalisation des erreurs
+Configuration Sentry pour la journalisation et la surveillance des erreurs
 """
+
 import logging
+import os
 
 import sentry_sdk
-import os
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 
 def init_sentry():
@@ -19,37 +20,38 @@ def init_sentry():
         print("⚠️  SENTRY_DSN non configuré - Journalisation Sentry désactivée")
         return
 
-    # Capturer tous les niveaux de log
+    # Intégration du logging Python
     sentry_logging = LoggingIntegration(
-        level=logging.INFO,  # Capturer les logs à partir d'INFO
-        event_level=logging.ERROR  # Envoyer à Sentry à partir d'ERROR
+        level=logging.INFO,       # Capturer les logs à partir de INFO
+        event_level=logging.ERROR # Envoyer à Sentry à partir de ERROR
     )
 
     sentry_sdk.init(
-        dsn=sentry_dsn,
+        dsn=sentry_dsn,  # ✅ DSN chargé depuis le fichier .env
         integrations=[
             sentry_logging,
             SqlalchemyIntegration(),
         ],
-        # Performance monitoring
+        # Performance monitoring (à réduire en production si nécessaire)
         traces_sample_rate=1.0,
-        # Debug info
+        # Ne pas envoyer de données personnelles par défaut
         send_default_pii=False,
-        # Environnement
+        # Environnement (development, staging, production)
         environment=os.getenv("ENVIRONMENT", "development"),
+        # Version de l'application
         release=os.getenv("APP_VERSION", "1.0.0"),
     )
 
     print("✅ Sentry initialisé pour la surveillance des erreurs")
 
 
-def capture_exception(exception: Exception, context: dict = None):
+def capture_exception(exception: Exception, context: dict | None = None):
     """
     Capture une exception et l'envoie à Sentry
 
     Args:
         exception: Exception à capturer
-        context: Contexte supplémentaire
+        context: Dictionnaire de contexte supplémentaire
     """
     try:
         with sentry_sdk.push_scope() as scope:
@@ -58,8 +60,8 @@ def capture_exception(exception: Exception, context: dict = None):
                     scope.set_extra(key, value)
             sentry_sdk.capture_exception(exception)
     except Exception as e:
-        # Fallback en cas d'échec Sentry
-        print(f"⚠️  Erreur lors de l'envoi à Sentry: {e}")
+        # Fallback si Sentry échoue
+        print(f"⚠️  Erreur lors de l'envoi de l'exception à Sentry: {e}")
 
 
 def capture_message(message: str, level: str = "error"):
@@ -68,9 +70,9 @@ def capture_message(message: str, level: str = "error"):
 
     Args:
         message: Message à capturer
-        level: Niveau (debug, info, warning, error)
+        level: Niveau du message (debug, info, warning, error)
     """
     try:
         sentry_sdk.capture_message(message, level=level)
     except Exception as e:
-        print(f"⚠️  Erreur Sentry: {e}")
+        print(f"⚠️  Erreur lors de l'envoi du message à Sentry: {e}")

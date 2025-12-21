@@ -7,6 +7,33 @@ from sentry_sdk import capture_message
 from .sentry_config import init_sentry, capture_exception
 
 
+# Logger global
+_logger = None
+
+
+def get_logger():
+    global _logger
+    if _logger is None:
+        _logger = SentryAwareLogger("epicevents")
+    return _logger
+
+
+def log_info(message: str):
+    get_logger().info(message)
+
+
+def log_warning(message: str):
+    get_logger().warning(message)
+
+
+def log_error(message: str, exception: Exception = None):
+    get_logger().error(message, exc_info=exception)
+
+
+def log_debug(message: str):
+    get_logger().debug(message)
+
+
 def setup_logging():
     """Configurer le logging et Sentry"""
     log_level = os.getenv('LOG_LEVEL', 'ERROR').upper()
