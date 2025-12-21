@@ -37,6 +37,7 @@ def log_debug(message: str):
 def setup_logging():
     """Configurer le logging et Sentry"""
     log_level = os.getenv('LOG_LEVEL', 'ERROR').upper()
+    init_sentry()
 
     # Configuration de base
     logging.basicConfig(

@@ -8,7 +8,7 @@ import sys
 
 # Ajouter le répertoire parent au path pour les imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from app.database.database import init_db
 from app.utils.sentry_config import init_sentry
 from app.utils.logging_config import setup_logging, log_error
 from app.menus.main_menu import main_menu
@@ -37,7 +37,6 @@ except Exception as e:
     log_error("Erreur de test Sentry", e)
 
 if __name__ == "__main__":
-    init_sentry()
-    init_app()
-    raise ValueError("Test Sentry Software_CRM")
+
+    init_db()
     main_menu()

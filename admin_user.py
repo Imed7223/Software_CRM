@@ -12,6 +12,7 @@ try:
         password="admin123",
         department="MANAGEMENT"
     )
+    db.commit()
     print("✅ Admin créé")
 except Exception as e:
     print(f"❌ Erreur: {e}")

@@ -49,3 +49,40 @@ def get_user_permissions(user: User):
 def has_permission(user: User, permission: str):
     """Vérifier si un utilisateur a une permission"""
     return permission in get_user_permissions(user)
+
+
+def require_permission(permission: str):
+    """
+    Décorateur pour vérifier les permissions dans les menus
+
+    Args:
+        permission: Permission requise
+
+    Returns:
+        function: Décorateur
+    """
+
+    def decorator(func):
+        def wrapper(user, *args, **kwargs):
+            if not has_permission(user, permission):
+                print(f"❌ Permission refusée. Accès non autorisé.")
+                return None
+            return func(user, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def check_permission(user: User, permission: str) -> bool:
+    """
+    Vérifie si l'utilisateur a une permission spécifique
+
+    Args:
+        user: Utilisateur à vérifier
+        permission: Permission requise
+
+    Returns:
+        True si l'utilisateur a la permission
+    """
+    return has_permission(user, permission)

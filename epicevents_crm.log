@@ -1,0 +1,42 @@
+2025-12-21 11:47:45 - epicevents - ERROR - Erreur de test Sentry
+Traceback (most recent call last):
+  File "C:\Users\mihou\Desktop\Software_CRM\main.py", line 35, in <module>
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
+2025-12-21 11:50:28 - epicevents - ERROR - Erreur de test Sentry
+Traceback (most recent call last):
+  File "C:\Users\mihou\Desktop\Software_CRM\main.py", line 35, in <module>
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
+2025-12-21 11:56:45 - epicevents - ERROR - Erreur de test Sentry
+Traceback (most recent call last):
+  File "C:\Users\mihou\Desktop\Software_CRM\main.py", line 35, in <module>
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
+2025-12-21 12:00:30 - epicevents - ERROR - Erreur de test Sentry
+Traceback (most recent call last):
+  File "C:\Users\mihou\Desktop\Software_CRM\main.py", line 35, in <module>
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
+2025-12-21 12:01:06 - epicevents - ERROR - Erreur de test Sentry
+Traceback (most recent call last):
+  File "C:\Users\mihou\Desktop\Software_CRM\main.py", line 35, in <module>
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
+2025-12-21 12:11:33 - epicevents - ERROR - Erreur de test Sentry
+Traceback (most recent call last):
+  File "C:\Users\mihou\Desktop\Software_CRM\main.py", line 36, in <module>
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
+2025-12-21 12:16:34 - epicevents - ERROR - Erreur de test Sentry
+Traceback (most recent call last):
+  File "C:\Users\mihou\Desktop\Software_CRM\main.py", line 35, in <module>
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
