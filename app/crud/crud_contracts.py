@@ -122,3 +122,38 @@ def get_contract_summary(db: Session):
         'remaining_amount': float(remaining),
         'paid_amount': float(total_amount - remaining)
     }
+
+
+def get_unsigned_contracts(db: Session):
+    """Obtenir tous les contrats non signés"""
+    return db.query(Contract).filter(Contract.is_signed == False).all()
+
+
+def get_unpaid_contracts(db: Session):
+    """Obtenir tous les contrats non entièrement payés"""
+    return db.query(Contract).filter(Contract.remaining_amount > 0).all()
+
+
+def get_contracts_by_commercial(db: Session, commercial_id: int):
+    """Obtenir tous les contrats d'un commercial"""
+    return db.query(Contract).filter(Contract.commercial_id == commercial_id).all()
+
+
+def search_contracts(db: Session, client_name: str = None, min_amount: float = None,
+                     max_amount: float = None, signed: bool = None):
+    """Recherche avancée de contrats"""
+    query = db.query(Contract).join(Client)
+
+    if client_name:
+        query = query.filter(Client.full_name.ilike(f"%{client_name}%"))
+
+    if min_amount is not None:
+        query = query.filter(Contract.total_amount >= min_amount)
+
+    if max_amount is not None:
+        query = query.filter(Contract.total_amount <= max_amount)
+
+    if signed is not None:
+        query = query.filter(Contract.is_signed == signed)
+
+    return query.order_by(Contract.creation_date.desc()).all()
