@@ -148,3 +148,41 @@ def get_events_summary(db: Session):
         'ongoing': ongoing,
         'past': total - upcoming - ongoing
     }
+
+
+def get_events_by_support(db: Session, support_id: int):
+    """Obtenir tous les événements d'un support spécifique"""
+    return db.query(Event).filter(Event.support_id == support_id).all()
+
+
+def get_events_by_date_range(db: Session, start_date: datetime, end_date: datetime):
+    """Obtenir les événements dans une plage de dates"""
+    return db.query(Event).filter(
+        Event.start_date >= start_date,
+        Event.end_date <= end_date
+    ).order_by(Event.start_date).all()
+
+
+def get_events_by_location(db: Session, location: str):
+    """Obtenir les événements par lieu"""
+    return db.query(Event).filter(Event.location.ilike(f"%{location}%")).all()
+
+
+def search_events(db: Session, name: str = None, location: str = None,
+                  client_id: int = None, support_id: int = None):
+    """Recherche avancée d'événements"""
+    query = db.query(Event)
+
+    if name:
+        query = query.filter(Event.name.ilike(f"%{name}%"))
+
+    if location:
+        query = query.filter(Event.location.ilike(f"%{location}%"))
+
+    if client_id:
+        query = query.filter(Event.client_id == client_id)
+
+    if support_id:
+        query = query.filter(Event.support_id == support_id)
+
+    return query.order_by(Event.start_date).all()
