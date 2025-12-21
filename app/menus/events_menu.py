@@ -27,9 +27,10 @@ def menu_events(db, user):
         print("4. ✏️  Modifier un événement")
         print("5. 👥  Assigner un support")
         print("6. 🗑️  Supprimer un événement")
-        print("7. ⚠️  Événements sans support")
-        print("8. 🔮  Événements à venir")
-        print("9. 📊  Statistiques")
+        print("7. 🔍  Filtres et recherche")
+        print("8. ⚠️  Événements sans support")
+        print("9. 🔮  Événements à venir")
+        print("10. 📊  Statistiques")
         print("0. ↩️  Retour")
         print("-" * 50)
 
@@ -167,13 +168,17 @@ def menu_events(db, user):
             except:
                 print("❌ ID invalide")
 
-        elif choice == "7":
+        elif choice == "7":  # Nouvelle option
+            from .filters_menu import menu_event_filters
+            menu_event_filters(db, user)
+
+        elif choice == "8":
             events = crud_events.get_events_without_support(db)
             print(f"\n⚠️  Événements sans support ({len(events)}):")
             for event in events:
                 print(f"  {event.id}: {event.name} - {event.start_date} - {event.location}")
 
-        elif choice == "8":
+        elif choice == "9":
             try:
                 days = int(input("Nombre de jours à venir (défaut: 7): ") or "7")
                 events = crud_events.get_upcoming_events(db, days)
@@ -184,7 +189,7 @@ def menu_events(db, user):
             except:
                 print("❌ Nombre invalide")
 
-        elif choice == "9":
+        elif choice == "10":
             try:
                 summary = crud_events.get_events_summary(db)
                 print(f"\n📊 Statistiques des événements:")

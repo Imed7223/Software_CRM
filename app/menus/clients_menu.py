@@ -24,6 +24,7 @@ def menu_clients(db, user):
         print("3. 👁️  Voir un client")
         print("4. ✏️  Modifier un client")
         print("5. 🗑️  Supprimer un client")
+        print("6. 🔍  Filtres et recherche")
         print("0. ↩️  Retour")
         print("-" * 50)
 
@@ -129,6 +130,10 @@ def menu_clients(db, user):
                     print("❌ Annulé")
             except:
                 print("❌ ID invalide")
+
+        elif choice == "6":
+            from .filters_menu import menu_client_filters
+            menu_client_filters(db, user)
 
         elif choice == "0":
             break

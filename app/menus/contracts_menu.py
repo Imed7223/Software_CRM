@@ -15,9 +15,7 @@ def display_contracts(contracts):
               f"Reste: {contract.remaining_amount}€ - "
               f"Signé: {status} - Client: {contract.client_id}")
 
-
 def menu_contracts(db, user):
-    """Menu gestion des contrats"""
     while True:
         print("\n" + "=" * 50)
         print("        GESTION DES CONTRATS")
@@ -29,7 +27,8 @@ def menu_contracts(db, user):
         print("5. ✍️  Signer un contrat")
         print("6. 💰  Ajouter un paiement")
         print("7. 🗑️  Supprimer un contrat")
-        print("8. 📊  Statistiques")
+        print("8. 🔍  Filtres et recherche")  # <-- NOUVELLE OPTION
+        print("9. 📊  Statistiques")
         print("0. ↩️  Retour")
         print("-" * 50)
 
@@ -161,7 +160,11 @@ def menu_contracts(db, user):
             except:
                 print("❌ ID invalide")
 
-        elif choice == "8":
+        elif choice == "8":  # Nouvelle option
+            from .filters_menu import menu_contract_filters
+            menu_contract_filters(db, user)
+
+        elif choice == "9":
             try:
                 summary = crud_contracts.get_contract_summary(db)
                 print(f"\n📊 Statistiques des contrats:")
