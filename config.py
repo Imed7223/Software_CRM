@@ -1,49 +1,10 @@
-"""
-Configuration de l'application
-"""
+# config.py - Garder seulement si nécessaire pour d'autres modules
 import os
 from dotenv import load_dotenv
-import sentry_sdk
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
-
-# Charger les variables d'environnement
 load_dotenv()
 
-def init_sentry():
-    sentry_sdk.init(
-        dsn=os.getenv("SENTRY_DSN"),
-        integrations=[SqlalchemyIntegration()],
-        traces_sample_rate=1.0,
-    )
-
 class Config:
-    """Configuration de l'application"""
-    # Base de données
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost/epicevents")
-
-    # Sécurité
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
-
-    # Logging
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    SECRET_KEY = os.getenv("SECRET_KEY")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "ERROR")
-
-    # Application
-    APP_NAME = "Software CRM"
-    APP_VERSION = "1.0.0"
-
-    @classmethod
-    def validate(cls):
-        """Valider la configuration"""
-        errors = []
-
-        if not cls.DATABASE_URL:
-            errors.append("DATABASE_URL non défini")
-
-        if not cls.SECRET_KEY or cls.SECRET_KEY == "dev-secret-key-change-in-production":
-            errors.append("SECRET_KEY non sécurisé")
-
-        if errors:
-            raise ValueError(f"Erreurs de configuration: {', '.join(errors)}")
-
-        return True

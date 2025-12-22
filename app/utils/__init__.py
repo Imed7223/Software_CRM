@@ -1,4 +1,4 @@
-from .logging_config import setup_logging, log_info, log_error, log_warning, log_debug
+from .logging_config import setup_logging, log_error  # log_info, log_warning, log_debug n'existent pas
 
 from .auth import (
     authenticate_user,
@@ -22,10 +22,7 @@ from .validators import (
 
 __all__ = [
     'setup_logging',
-    'log_info',
-    'log_error',
-    'log_warning',
-    'log_debug',
+    'log_error',  # ✅ Seulement log_error existe
     'authenticate_user',
     'verify_password',
     'hash_password',

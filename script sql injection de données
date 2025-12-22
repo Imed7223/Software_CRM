@@ -1,0 +1,43 @@
+-- 1. UTILISATEURS
+INSERT INTO users (employee_id, full_name, email, department, hashed_password, created_at, updated_at) VALUES
+('EMP001', 'Bill Boquet', 'bill.boquet@epicevents.com', 'SALES', '$2b$12$...', NOW(), NOW()),
+('EMP002', 'Kate Hastroff', 'kate.hastroff@epicevents.com', 'SUPPORT', '$2b$12$...', NOW(), NOW()),
+('EMP003', 'Alienor Vichum', 'alienor.vichum@epicevents.com', 'SUPPORT', '$2b$12$...', NOW(), NOW()),
+('EMP004', 'Marc Dubois', 'marc.dubois@epicevents.com', 'SALES', '$2b$12$...', NOW(), NOW()),
+('EMP005', 'Sophie Martin', 'sophie.martin@epicevents.com', 'SALES', '$2b$12$...', NOW(), NOW()),
+('EMP006', 'Thomas Leroy', 'thomas.leroy@epicevents.com', 'SUPPORT', '$2b$12$...', NOW(), NOW()),
+('EMP007', 'Julie Bernard', 'julie.bernard@epicevents.com', 'MANAGEMENT', '$2b$12$...', NOW(), NOW()),
+('EMP008', 'Paul Richard', 'paul.richard@epicevents.com', 'MANAGEMENT', '$2b$12$...', NOW(), NOW());
+
+-- 2. CLIENTS
+INSERT INTO clients (full_name, email, phone, company_name, commercial_id, created_date, last_contact) VALUES
+('Kevin Casey', 'kevin@startup.io', '+33612345678', 'Cool Startup LLC', 1, '2021-04-18', '2023-03-29'),
+('John Quick', 'john.quick@gmail.com', '+12345678901', 'Quick Enterprises', 1, '2022-01-15', '2023-05-20'),
+('Lou Bouzin', 'contact@bouzin.group', '+33698765432', 'Bouzin Group', 4, '2021-11-30', '2023-04-15'),
+('Marie Dupont', 'marie.dupont@techcorp.fr', '+33123456789', 'TechCorp France', 5, '2022-03-10', '2023-06-05'),
+('Ahmed Khan', 'ahmed.khan@globaltrade.com', '+442012345678', 'Global Trade Ltd', 4, '2022-06-22', '2023-05-30'),
+('Sarah Chen', 'sarah.chen@innovate.asia', '+85212345678', 'Innovate Asia', 5, '2023-01-05', '2023-07-10'),
+('Roberto Silva', 'roberto@silva.br', '+5511987654321', 'Silva Construções', 1, '2022-09-18', '2023-06-25'),
+('Anna Schmidt', 'anna.schmidt@engineering.de', '+4915123456789', 'Schmidt Engineering', 4, '2023-02-14', '2023-07-15');
+
+-- 3. CONTRATS
+INSERT INTO contracts (total_amount, remaining_amount, is_signed, client_id, commercial_id, creation_date) VALUES
+(15000.00, 5000.00, true, 1, 1, '2022-05-10'),
+(8000.00, 0.00, true, 2, 1, '2022-08-15'),
+(20000.00, 0.00, true, 3, 4, '2022-11-20'),
+(12000.00, 3000.00, true, 4, 5, '2023-02-28'),
+(25000.00, 15000.00, true, 5, 4, '2023-03-15'),
+(18000.00, 18000.00, false, 6, 5, '2023-04-10'),
+(30000.00, 30000.00, false, 7, 1, '2023-05-22'),
+(9500.00, 0.00, true, 8, 4, '2023-06-18');
+
+-- 4. ÉVÉNEMENTS
+INSERT INTO events (name, start_date, end_date, location, attendees, support_id, client_id, contract_id, notes) VALUES
+('Kevin Startup Launch', '2023-06-04 13:00:00', '2023-06-04 18:00:00', 'Paris Convention Center', 150, 2, 1, 1, 'Lancement produit innovant. Catering inclus.'),
+('John Quick Wedding', '2023-06-04 13:00:00', '2023-06-05 02:00:00', '53 Rue du Château, Candé-sur-Beuvron', 75, 2, 2, 2, 'Mariage avec réception. DJ à organiser.'),
+('Lou Bouzin General Assembly', '2023-05-05 15:00:00', '2023-05-05 17:00:00', 'Salle des fêtes de Mufflins', 200, 3, 3, 3, 'Assemblée générale des actionnaires.'),
+('TechCorp Annual Conference', '2023-07-20 09:00:00', '2023-07-20 17:00:00', 'Palais des Congrès, Lyon', 300, 6, 4, 4, 'Conférence annuelle sur les nouvelles technologies.'),
+('Global Trade Summit', '2023-08-10 10:00:00', '2023-08-11 16:00:00', 'Excel London', 500, 3, 5, 5, 'Sommet annuel du commerce international.'),
+('Innovate Asia Demo Day', '2023-09-15 14:00:00', '2023-09-15 19:00:00', 'Hong Kong Convention Centre', 250, 2, 6, 6, 'Présentation des startups asiatiques.'),
+('Silva Construction Inauguration', '2023-10-05 11:00:00', '2023-10-05 15:00:00', 'São Paulo Business Center', 100, 6, 7, 7, 'Inauguration nouveau siège social.'),
+('Schmidt Engineering Workshop', '2023-11-20 08:30:00', '2023-11-22 17:00:00', 'Berlin Tech Hub', 80, 3, 8, 8, 'Atelier de formation ingénierie avancée.');
