@@ -51,6 +51,11 @@ def menu_events(db, user):
 
         # 2. Ajouter un événement
         elif choice == "2":
+            # Le support ne peut pas créer d'événements (c'est le commercial / management)
+            if user.department == Department.SUPPORT:
+                print("❌ Le département support ne peut pas créer d'événements.")
+                continue
+
             print("\n➕ Ajouter un événement:")
 
             try:
@@ -109,7 +114,7 @@ def menu_events(db, user):
                     attendees, notes, client_id, contract_id, support_id
                 )
                 print(f"✅ Événement créé: {new_event.name}")
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors de la création de l'événement. Vérifiez les valeurs saisies.")
 
@@ -150,13 +155,13 @@ def menu_events(db, user):
                     print("❌ Événement non trouvé")
                     continue
 
-                # SUPPORT : ne peut modifier que ses propres événements
+                # SUPPORT : ne peut modifier que ses propres événements via manage_own_events
                 if user.department == Department.SUPPORT:
-                    if not has_permission(user, "manage_events"):
+                    if not has_permission(user, "manage_own_events"):
                         print("❌ Vous n'avez pas la permission de modifier des événements.")
                         continue
                     if existing.support_id != user.id:
-                        print("❌ Vous ne pouvez modifier que vos événements assignés.")
+                        print("❌ Vous ne pouvez modifier que vos événements qui vous sont assignés.")
                         continue
 
                 print(f"Modification de {existing.name}")
@@ -184,17 +189,22 @@ def menu_events(db, user):
                     updates['notes'] = new_notes
 
                 if updates:
-                    updated = crud_events.update_event(db, existing.id, **updates)
+                    crud_events.update_event(db, existing.id, **updates)
                     print("✅ Événement mis à jour")
                 else:
                     print("⚠️  Aucune modification")
 
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors de la mise à jour de l'événement.")
 
         # 5. Assigner un support
         elif choice == "5":
+            # Seul le management peut assigner un support
+            if user.department != Department.MANAGEMENT:
+                print("❌ Seul le management peut assigner un support à un événement.")
+                continue
+
             event_id = input("\n👥 ID de l'événement: ")
             if not validate_integer(event_id):
                 print("❌ ID invalide. Veuillez saisir un entier.")
@@ -216,9 +226,9 @@ def menu_events(db, user):
                     continue
                 support_id = int(support_id_str)
 
-                updated = crud_events.assign_support_to_event(db, event.id, support_id)
+                crud_events.assign_support_to_event(db, event.id, support_id)
                 print("✅ Support assigné")
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors de l'assignation du support.")
 
@@ -234,22 +244,22 @@ def menu_events(db, user):
                     print("❌ Événement non trouvé")
                     continue
 
-                # SUPPORT : ne peut supprimer que ses propres événements
+                # SUPPORT : ne peut supprimer que ses propres événements via manage_own_events
                 if user.department == Department.SUPPORT:
-                    if not has_permission(user, "manage_events"):
+                    if not has_permission(user, "manage_own_events"):
                         print("❌ Vous n'avez pas la permission de supprimer des événements.")
                         continue
                     if existing.support_id != user.id:
-                        print("❌ Vous ne pouvez supprimer que vos événements assignés.")
+                        print("❌ Vous ne pouvez supprimer que vos événements qui vous sont assignés.")
                         continue
 
                 confirm = input(f"Confirmer la suppression de {existing.name}? (o/n): ")
                 if confirm.lower() == 'o':
-                    deleted = crud_events.delete_event(db, existing.id)
+                    crud_events.delete_event(db, existing.id)
                     print("✅ Événement supprimé")
                 else:
                     print("❌ Annulé")
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors de la suppression de l'événement.")
 
@@ -301,7 +311,7 @@ def menu_events(db, user):
                 if summary['total'] > 0:
                     percent = (summary['with_support'] / summary['total']) * 100
                     print(f"  Taux d'assignation: {percent:.1f}%")
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors du calcul des statistiques.")
 

@@ -1,6 +1,8 @@
 from app.crud import crud_contracts, crud_clients
 from .filters_menu import menu_contract_filters
 from app.utils.validators import validate_integer, validate_amount
+from app.models.users import Department
+from app.utils.auth import has_permission
 
 
 def display_contracts(contracts):
@@ -45,6 +47,11 @@ def menu_contracts(db, user):
 
         # 2. Ajouter un contrat
         elif choice == "2":
+            # Le support ne doit pas créer de contrats
+            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts"):
+                print("❌ Vous n'avez pas la permission de créer des contrats.")
+                continue
+
             print("\n➕ Ajouter un contrat:")
 
             # Afficher les clients
@@ -88,11 +95,11 @@ def menu_contracts(db, user):
                     db, total, remaining, is_signed, client_id, commercial_id
                 )
                 print(f"✅ Contrat créé: {new_contract.id}")
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors de la création du contrat. Vérifiez les valeurs saisies.")
 
-        # 3. Voir un contrat
+        # 3. Voir un contrat (lecture autorisée pour tous)
         elif choice == "3":
             contract_id = input("\n👁️ ID du contrat: ")
             if not validate_integer(contract_id):
@@ -116,6 +123,11 @@ def menu_contracts(db, user):
 
         # 4. Modifier un contrat
         elif choice == "4":
+            # Le support ne doit pas modifier de contrats
+            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts"):
+                print("❌ Vous n'avez pas la permission de modifier des contrats.")
+                continue
+
             contract_id = input("\n✏️ ID du contrat à modifier: ")
             if not validate_integer(contract_id):
                 print("❌ ID invalide. Veuillez saisir un nombre entier.")
@@ -150,17 +162,22 @@ def menu_contracts(db, user):
                     updates['is_signed'] = signed_input.lower() == 'o'
 
                 if updates:
-                    updated = crud_contracts.update_contract(db, existing.id, **updates)
+                    crud_contracts.update_contract(db, existing.id, **updates)
                     print("✅ Contrat mis à jour")
                 else:
                     print("⚠️  Aucune modification")
 
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors de la mise à jour du contrat.")
 
         # 5. Signer un contrat
         elif choice == "5":
+            # Le support ne doit pas signer de contrats
+            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts"):
+                print("❌ Vous n'avez pas la permission de signer des contrats.")
+                continue
+
             contract_id = input("\n✍️ ID du contrat à signer: ")
             if not validate_integer(contract_id):
                 print("❌ ID invalide. Veuillez saisir un nombre entier.")
@@ -171,12 +188,17 @@ def menu_contracts(db, user):
                     print("✅ Contrat signé")
                 else:
                     print("❌ Contrat non trouvé")
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors de la signature du contrat.")
 
         # 6. Ajouter un paiement
         elif choice == "6":
+            # Le support ne doit pas ajouter de paiements
+            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts"):
+                print("❌ Vous n'avez pas la permission d'ajouter des paiements.")
+                continue
+
             contract_id = input("\n💰 ID du contrat: ")
             if not validate_integer(contract_id):
                 print("❌ ID invalide. Veuillez saisir un nombre entier.")
@@ -197,12 +219,17 @@ def menu_contracts(db, user):
                 updated = crud_contracts.add_payment(db, contract.id, amount)
                 if updated:
                     print(f"✅ Paiement ajouté. Nouveau reste: {updated.remaining_amount}€")
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors de l'ajout du paiement.")
 
         # 7. Supprimer un contrat
         elif choice == "7":
+            # Le support ne doit pas supprimer de contrats
+            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts"):
+                print("❌ Vous n'avez pas la permission de supprimer des contrats.")
+                continue
+
             contract_id = input("\n🗑️ ID du contrat à supprimer: ")
             if not validate_integer(contract_id):
                 print("❌ ID invalide. Veuillez saisir un nombre entier.")
@@ -215,7 +242,7 @@ def menu_contracts(db, user):
 
                 confirm = input(f"Confirmer la suppression du contrat {existing.id}? (o/n): ")
                 if confirm.lower() == 'o':
-                    deleted = crud_contracts.delete_contract(db, existing.id)
+                    crud_contracts.delete_contract(db, existing.id)
                     print("✅ Contrat supprimé")
                 else:
                     print("❌ Annulé")
@@ -223,11 +250,11 @@ def menu_contracts(db, user):
                 db.rollback()
                 print("❌ Erreur lors de la suppression du contrat.")
 
-        # 8. Filtres et recherche
+        # 8. Filtres et recherche (lecture, donc OK pour tous)
         elif choice == "8":
             menu_contract_filters(db, user)
 
-        # 9. Statistiques
+        # 9. Statistiques (lecture, donc OK pour tous)
         elif choice == "9":
             try:
                 summary = crud_contracts.get_contract_summary(db)
@@ -242,7 +269,7 @@ def menu_contracts(db, user):
                 if summary['total_amount'] > 0:
                     percent = (summary['paid_amount'] / summary['total_amount']) * 100
                     print(f"  Pourcentage payé: {percent:.1f}%")
-            except Exception as e:
+            except Exception:
                 db.rollback()
                 print("❌ Erreur lors du calcul des statistiques.")
 
