@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database.database import init_db, SessionLocal
-from app.utils.logging_config import setup_logging, log_error
+from app.utils.logging_config import setup_logging, log_error, log_info,log_warning,log_debug
 from app.menus.main_menu import main_menu
 from app.utils.auth import authenticate_user, create_access_token, decode_access_token
 from app.models.users import User
@@ -23,20 +23,31 @@ def init_app():
     """Initialise l'application"""
     try:
         logger = setup_logging()
+        log_info("Démarrage de l'application EPICEVENTS CRM")
 
         if not os.getenv("DATABASE_URL"):
+            log_error("DATABASE_URL non défini dans .env")
             print("❌ ERREUR: DATABASE_URL non défini dans .env")
             print("⚠️  Créez un fichier .env avec la configuration de la base de données")
             sys.exit(1)
 
         if not os.getenv("SENTRY_DSN"):
+            log_warning("SENTRY_DSN non défini - Sentry désactivé")
             print("⚠️  SENTRY_DSN non défini - Sentry désactivé")
+        else:
+            log_debug("SENTRY_DSN détecté, Sentry actif")
 
         print("=" * 50)
         print("      EPICEVENTS CRM - Gestion Clientèle")
         print("=" * 50)
 
         return logger
+
+    except Exception as e:
+        log_error("Erreur lors de l'initialisation de l'application", e)
+        print(f"❌ Erreur lors de l'initialisation: {e}")
+        sys.exit(1)
+
 
     except Exception as e:
         print(f"❌ Erreur lors de l'initialisation: {e}")
