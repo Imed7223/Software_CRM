@@ -1,7 +1,7 @@
 from app.crud import crud_users
 from app.models.users import Department
 from app.utils.auth import has_permission
-from app.utils.validators import validate_email  
+from app.utils.validators import validate_email, validate_integer
 
 
 def menu_users(db, user):
@@ -55,11 +55,14 @@ def menu_users(db, user):
                 print(f"✅ Utilisateur créé: {new_user.full_name}")
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de la création de l'utilisateur.")
 
         # 3. Voir un utilisateur
         elif choice == "3":
             user_id = input("\n👁️ ID de l'utilisateur: ")
+            if not validate_integer(user_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
             try:
                 target = crud_users.get_user_by_id(db, int(user_id))
                 if target:
@@ -73,11 +76,14 @@ def menu_users(db, user):
                 else:
                     print("❌ Utilisateur non trouvé")
             except Exception:
-                print("❌ ID invalide")
+                print("❌ Erreur lors de la lecture de l'utilisateur.")
 
         # 4. Modifier un utilisateur
         elif choice == "4":
             user_id = input("\n✏️ ID de l'utilisateur à modifier: ")
+            if not validate_integer(user_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
             try:
                 existing = crud_users.get_user_by_id(db, int(user_id))
                 if not existing:
@@ -116,11 +122,14 @@ def menu_users(db, user):
 
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de la mise à jour de l'utilisateur.")
 
         # 5. Supprimer un utilisateur
         elif choice == "5":
             user_id = input("\n🗑️ ID de l'utilisateur à supprimer: ")
+            if not validate_integer(user_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
             try:
                 existing = crud_users.get_user_by_id(db, int(user_id))
                 if not existing:
@@ -135,7 +144,7 @@ def menu_users(db, user):
                     print("❌ Annulé")
             except Exception:
                 db.rollback()
-                print("❌ ID invalide ou erreur lors de la suppression")
+                print("❌ Erreur lors de la suppression de l'utilisateur.")
 
         # 6. Statistiques
         elif choice == "6":
@@ -148,7 +157,7 @@ def menu_users(db, user):
                 print(f"  Management: {summary['management']}")
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors du calcul des statistiques.")
 
         elif choice == "0":
             break

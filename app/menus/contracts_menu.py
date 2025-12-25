@@ -1,5 +1,6 @@
 from app.crud import crud_contracts, crud_clients
 from .filters_menu import menu_contract_filters
+from app.utils.validators import validate_integer, validate_amount
 
 
 def display_contracts(contracts):
@@ -11,9 +12,12 @@ def display_contracts(contracts):
     print(f"\n📄 Contrats ({len(contracts)}):")
     for contract in contracts:
         status = "✓" if contract.is_signed else "✗"
-        print(f"  {contract.id}: {contract.total_amount}€ - "
-              f"Reste: {contract.remaining_amount}€ - "
-              f"Signé: {status} - Client: {contract.client_id}")
+        print(
+            f"  {contract.id}: {contract.total_amount}€ - "
+            f"Reste: {contract.remaining_amount}€ - "
+            f"Signé: {status} - Client: {contract.client_id}"
+        )
+
 
 def menu_contracts(db, user):
     while True:
@@ -27,17 +31,19 @@ def menu_contracts(db, user):
         print("5. ✍️  Signer un contrat")
         print("6. 💰  Ajouter un paiement")
         print("7. 🗑️  Supprimer un contrat")
-        print("8. 🔍  Filtres et recherche")  # <-- NOUVELLE OPTION
+        print("8. 🔍  Filtres et recherche")
         print("9. 📊  Statistiques")
         print("0. ↩️  Retour")
         print("-" * 50)
 
         choice = input("Choisissez une option: ")
 
+        # 1. Liste
         if choice == "1":
             contracts = crud_contracts.get_all_contracts(db)
             display_contracts(contracts)
 
+        # 2. Ajouter un contrat
         elif choice == "2":
             print("\n➕ Ajouter un contrat:")
 
@@ -49,9 +55,30 @@ def menu_contracts(db, user):
             print()
 
             try:
-                total = float(input("Montant total: "))
-                remaining = float(input("Montant restant: "))
-                client_id = int(input("ID client: "))
+                total_str = input("Montant total: ")
+                if not validate_amount(total_str):
+                    print("❌ Montant total invalide. Veuillez saisir un nombre positif.")
+                    continue
+                total = float(total_str)
+
+                remaining_str = input("Montant restant: ")
+                if not validate_amount(remaining_str):
+                    print("❌ Montant restant invalide. Veuillez saisir un nombre positif.")
+                    continue
+                remaining = float(remaining_str)
+
+                client_id_str = input("ID client: ")
+                if not validate_integer(client_id_str):
+                    print("❌ ID client invalide. Veuillez saisir un nombre entier.")
+                    continue
+                client_id = int(client_id_str)
+
+                # Vérifier que le client existe
+                client = crud_clients.get_client_by_id(db, client_id)
+                if not client:
+                    print("❌ Client introuvable. Veuillez choisir un ID dans la liste.")
+                    continue
+
                 commercial_id = user.id
 
                 signed_input = input("Contrat signé? (o/n): ")
@@ -62,10 +89,15 @@ def menu_contracts(db, user):
                 )
                 print(f"✅ Contrat créé: {new_contract.id}")
             except Exception as e:
-                print(f"❌ Erreur: {e}")
+                db.rollback()
+                print("❌ Erreur lors de la création du contrat. Vérifiez les valeurs saisies.")
 
+        # 3. Voir un contrat
         elif choice == "3":
             contract_id = input("\n👁️ ID du contrat: ")
+            if not validate_integer(contract_id):
+                print("❌ ID invalide. Veuillez saisir un nombre entier.")
+                continue
             try:
                 contract = crud_contracts.get_contract_by_id(db, int(contract_id))
                 if contract:
@@ -79,11 +111,15 @@ def menu_contracts(db, user):
                     print(f"  Créé le: {contract.creation_date}")
                 else:
                     print("❌ Contrat non trouvé")
-            except:
-                print("❌ ID invalide")
+            except Exception:
+                print("❌ Erreur lors de la lecture du contrat.")
 
+        # 4. Modifier un contrat
         elif choice == "4":
             contract_id = input("\n✏️ ID du contrat à modifier: ")
+            if not validate_integer(contract_id):
+                print("❌ ID invalide. Veuillez saisir un nombre entier.")
+                continue
             try:
                 existing = crud_contracts.get_contract_by_id(db, int(contract_id))
                 if not existing:
@@ -94,12 +130,19 @@ def menu_contracts(db, user):
                 print("Laissez vide pour ne pas modifier")
 
                 updates = {}
+
                 new_total = input(f"Montant total [{existing.total_amount}]: ")
                 if new_total:
+                    if not validate_amount(new_total):
+                        print("❌ Montant total invalide.")
+                        continue
                     updates['total_amount'] = float(new_total)
 
                 new_remaining = input(f"Montant restant [{existing.remaining_amount}]: ")
                 if new_remaining:
+                    if not validate_amount(new_remaining):
+                        print("❌ Montant restant invalide.")
+                        continue
                     updates['remaining_amount'] = float(new_remaining)
 
                 signed_input = input(f"Signé? (o/n) [{'o' if existing.is_signed else 'n'}]: ")
@@ -108,26 +151,36 @@ def menu_contracts(db, user):
 
                 if updates:
                     updated = crud_contracts.update_contract(db, existing.id, **updates)
-                    print(f"✅ Contrat mis à jour")
+                    print("✅ Contrat mis à jour")
                 else:
                     print("⚠️  Aucune modification")
 
             except Exception as e:
-                print(f"❌ Erreur: {e}")
+                db.rollback()
+                print("❌ Erreur lors de la mise à jour du contrat.")
 
+        # 5. Signer un contrat
         elif choice == "5":
             contract_id = input("\n✍️ ID du contrat à signer: ")
+            if not validate_integer(contract_id):
+                print("❌ ID invalide. Veuillez saisir un nombre entier.")
+                continue
             try:
                 updated = crud_contracts.sign_contract(db, int(contract_id))
                 if updated:
-                    print(f"✅ Contrat signé")
+                    print("✅ Contrat signé")
                 else:
                     print("❌ Contrat non trouvé")
             except Exception as e:
-                print(f"❌ Erreur: {e}")
+                db.rollback()
+                print("❌ Erreur lors de la signature du contrat.")
 
+        # 6. Ajouter un paiement
         elif choice == "6":
             contract_id = input("\n💰 ID du contrat: ")
+            if not validate_integer(contract_id):
+                print("❌ ID invalide. Veuillez saisir un nombre entier.")
+                continue
             try:
                 contract = crud_contracts.get_contract_by_id(db, int(contract_id))
                 if not contract:
@@ -135,16 +188,25 @@ def menu_contracts(db, user):
                     continue
 
                 print(f"Montant restant: {contract.remaining_amount}€")
-                amount = float(input("Montant du paiement: "))
+                amount_str = input("Montant du paiement: ")
+                if not validate_amount(amount_str):
+                    print("❌ Montant de paiement invalide.")
+                    continue
+                amount = float(amount_str)
 
                 updated = crud_contracts.add_payment(db, contract.id, amount)
                 if updated:
                     print(f"✅ Paiement ajouté. Nouveau reste: {updated.remaining_amount}€")
             except Exception as e:
-                print(f"❌ Erreur: {e}")
+                db.rollback()
+                print("❌ Erreur lors de l'ajout du paiement.")
 
+        # 7. Supprimer un contrat
         elif choice == "7":
             contract_id = input("\n🗑️ ID du contrat à supprimer: ")
+            if not validate_integer(contract_id):
+                print("❌ ID invalide. Veuillez saisir un nombre entier.")
+                continue
             try:
                 existing = crud_contracts.get_contract_by_id(db, int(contract_id))
                 if not existing:
@@ -154,16 +216,18 @@ def menu_contracts(db, user):
                 confirm = input(f"Confirmer la suppression du contrat {existing.id}? (o/n): ")
                 if confirm.lower() == 'o':
                     deleted = crud_contracts.delete_contract(db, existing.id)
-                    print(f"✅ Contrat supprimé")
+                    print("✅ Contrat supprimé")
                 else:
                     print("❌ Annulé")
-            except:
-                print("❌ ID invalide")
+            except Exception:
+                db.rollback()
+                print("❌ Erreur lors de la suppression du contrat.")
 
-        elif choice == "8":  # Nouvelle option
-
+        # 8. Filtres et recherche
+        elif choice == "8":
             menu_contract_filters(db, user)
 
+        # 9. Statistiques
         elif choice == "9":
             try:
                 summary = crud_contracts.get_contract_summary(db)
@@ -179,7 +243,8 @@ def menu_contracts(db, user):
                     percent = (summary['paid_amount'] / summary['total_amount']) * 100
                     print(f"  Pourcentage payé: {percent:.1f}%")
             except Exception as e:
-                print(f"❌ Erreur: {e}")
+                db.rollback()
+                print("❌ Erreur lors du calcul des statistiques.")
 
         elif choice == "0":
             break

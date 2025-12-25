@@ -403,10 +403,10 @@ def create_initial_data():
         db.close()
 
 
-'''if __name__ == "__main__":
+if __name__ == "__main__":
     print("🔄 Initialisation de la base de données Epicevents CRM...")
 
     # Créer les données initiales
     create_initial_data()
 
-    print("\n🎉 Installation terminée! Lancez l'application avec: python main.py")'''
+    print("\n🎉 Installation terminée! Lancez l'application avec: python main.py")

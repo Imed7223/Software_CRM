@@ -2,7 +2,7 @@ from app.crud import crud_clients, crud_users
 from app.utils.auth import has_permission
 from app.models.users import Department
 from .filters_menu import menu_client_filters
-from app.utils.validators import validate_phone, format_phone_number
+from app.utils.validators import validate_phone, format_phone_number, validate_integer
 
 
 def display_clients(clients):
@@ -68,7 +68,11 @@ def menu_clients(db, user):
                     for c in commercials:
                         print(f"  {c.id}: {c.full_name}")
                     print()
-                    commercial_id = int(input("ID commercial: "))
+                    commercial_id_str = input("ID commercial: ")
+                    if not validate_integer(commercial_id_str):
+                        print("❌ ID commercial invalide. Veuillez saisir un entier.")
+                        continue
+                    commercial_id = int(commercial_id_str)
 
                 new_client = crud_clients.create_client(
                     db, full_name, email, phone, company, commercial_id
@@ -77,10 +81,13 @@ def menu_clients(db, user):
 
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de la création du client. Vérifiez les valeurs saisies.")
 
         elif choice == "3":
             client_id = input("\n👁️ ID du client: ")
+            if not validate_integer(client_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
             try:
                 client = crud_clients.get_client_by_id(db, int(client_id))
                 if client:
@@ -96,7 +103,7 @@ def menu_clients(db, user):
                 else:
                     print("❌ Client non trouvé")
             except Exception:
-                print("❌ ID invalide")
+                print("❌ Erreur lors de la lecture du client.")
 
         elif choice == "4":
             if not has_permission(user, "manage_clients"):
@@ -104,6 +111,9 @@ def menu_clients(db, user):
                 continue
 
             client_id = input("\n✏️ ID du client à modifier: ")
+            if not validate_integer(client_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
 
             try:
                 existing = crud_clients.get_client_by_id(db, int(client_id))
@@ -148,7 +158,7 @@ def menu_clients(db, user):
 
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de la mise à jour du client.")
 
         elif choice == "5":
             if not has_permission(user, "manage_clients"):
@@ -156,6 +166,9 @@ def menu_clients(db, user):
                 continue
 
             client_id = input("\n🗑️ ID du client à supprimer: ")
+            if not validate_integer(client_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
 
             try:
                 existing = crud_clients.get_client_by_id(db, int(client_id))
@@ -177,7 +190,7 @@ def menu_clients(db, user):
 
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de la suppression du client.")
 
         elif choice == "6":
             menu_client_filters(db, user)

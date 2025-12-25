@@ -3,7 +3,7 @@ from datetime import datetime
 from app.utils.auth import has_permission
 from app.models.users import Department
 from .filters_menu import menu_event_filters
-from app.utils.validators import validate_datetime
+from app.utils.validators import validate_datetime, validate_integer
 
 
 def display_events(events):
@@ -67,10 +67,26 @@ def menu_events(db, user):
                     continue
 
                 location = input("Lieu: ")
-                attendees = int(input("Nombre de participants: "))
+
+                attendees_str = input("Nombre de participants: ")
+                if not validate_integer(attendees_str):
+                    print("❌ Nombre de participants invalide. Veuillez saisir un entier.")
+                    continue
+                attendees = int(attendees_str)
+
                 notes = input("Notes: ")
-                client_id = int(input("ID client: "))
-                contract_id = int(input("ID contrat: "))
+
+                client_id_str = input("ID client: ")
+                if not validate_integer(client_id_str):
+                    print("❌ ID client invalide. Veuillez saisir un entier.")
+                    continue
+                client_id = int(client_id_str)
+
+                contract_id_str = input("ID contrat: ")
+                if not validate_integer(contract_id_str):
+                    print("❌ ID contrat invalide. Veuillez saisir un entier.")
+                    continue
+                contract_id = int(contract_id_str)
 
                 start_date = datetime.strptime(start_str, '%Y-%m-%d %H:%M')
                 end_date = datetime.strptime(end_str, '%Y-%m-%d %H:%M')
@@ -82,7 +98,11 @@ def menu_events(db, user):
                     print("Supports disponibles:")
                     for s in supports:
                         print(f"  {s.id}: {s.full_name}")
-                    support_id = int(input("ID support: "))
+                    support_id_str = input("ID support: ")
+                    if not validate_integer(support_id_str):
+                        print("❌ ID support invalide.")
+                        continue
+                    support_id = int(support_id_str)
 
                 new_event = crud_events.create_event(
                     db, name, start_date, end_date, location,
@@ -91,11 +111,14 @@ def menu_events(db, user):
                 print(f"✅ Événement créé: {new_event.name}")
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de la création de l'événement. Vérifiez les valeurs saisies.")
 
         # 3. Voir un événement
         elif choice == "3":
             event_id = input("\n👁️ ID de l'événement: ")
+            if not validate_integer(event_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
             try:
                 event = crud_events.get_event_by_id(db, int(event_id))
                 if event:
@@ -113,11 +136,14 @@ def menu_events(db, user):
                 else:
                     print("❌ Événement non trouvé")
             except Exception:
-                print("❌ ID invalide")
+                print("❌ Erreur lors de la lecture de l'événement.")
 
         # 4. Modifier un événement
         elif choice == "4":
             event_id = input("\n✏️ ID de l'événement à modifier: ")
+            if not validate_integer(event_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
             try:
                 existing = crud_events.get_event_by_id(db, int(event_id))
                 if not existing:
@@ -137,6 +163,7 @@ def menu_events(db, user):
                 print("Laissez vide pour ne pas modifier")
 
                 updates = {}
+
                 new_name = input(f"Nom [{existing.name}]: ")
                 if new_name:
                     updates['name'] = new_name
@@ -147,6 +174,9 @@ def menu_events(db, user):
 
                 new_attendees = input(f"Participants [{existing.attendees}]: ")
                 if new_attendees:
+                    if not validate_integer(new_attendees):
+                        print("❌ Nombre de participants invalide.")
+                        continue
                     updates['attendees'] = int(new_attendees)
 
                 new_notes = input(f"Notes [{existing.notes}]: ")
@@ -161,11 +191,14 @@ def menu_events(db, user):
 
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de la mise à jour de l'événement.")
 
         # 5. Assigner un support
         elif choice == "5":
             event_id = input("\n👥 ID de l'événement: ")
+            if not validate_integer(event_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
             try:
                 event = crud_events.get_event_by_id(db, int(event_id))
                 if not event:
@@ -177,16 +210,24 @@ def menu_events(db, user):
                 for s in supports:
                     print(f"  {s.id}: {s.full_name}")
 
-                support_id = int(input("ID support: "))
+                support_id_str = input("ID support: ")
+                if not validate_integer(support_id_str):
+                    print("❌ ID support invalide.")
+                    continue
+                support_id = int(support_id_str)
+
                 updated = crud_events.assign_support_to_event(db, event.id, support_id)
                 print("✅ Support assigné")
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de l'assignation du support.")
 
         # 6. Supprimer un événement
         elif choice == "6":
             event_id = input("\n🗑️ ID de l'événement à supprimer: ")
+            if not validate_integer(event_id):
+                print("❌ ID invalide. Veuillez saisir un entier.")
+                continue
             try:
                 existing = crud_events.get_event_by_id(db, int(event_id))
                 if not existing:
@@ -210,7 +251,7 @@ def menu_events(db, user):
                     print("❌ Annulé")
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors de la suppression de l'événement.")
 
         # 7. Filtres
         elif choice == "7":
@@ -226,7 +267,12 @@ def menu_events(db, user):
         # 9. Événements à venir
         elif choice == "9":
             try:
-                days = int(input("Nombre de jours à venir (défaut: 7): ") or "7")
+                days_str = input("Nombre de jours à venir (défaut: 7): ") or "7"
+                if not validate_integer(days_str):
+                    print("❌ Nombre invalide. Veuillez saisir un entier.")
+                    continue
+                days = int(days_str)
+
                 events = crud_events.get_upcoming_events(db, days)
 
                 # SUPPORT : ne montrer que ses événements à venir
@@ -238,7 +284,7 @@ def menu_events(db, user):
                     support = f"Support: {event.support_id}" if event.support_id else "⚠️ Sans support"
                     print(f"  {event.id}: {event.name} - {event.start_date} - {event.location} - {support}")
             except Exception:
-                print("❌ Nombre invalide")
+                print("❌ Erreur lors du calcul des événements à venir.")
 
         # 10. Statistiques
         elif choice == "10":
@@ -257,7 +303,7 @@ def menu_events(db, user):
                     print(f"  Taux d'assignation: {percent:.1f}%")
             except Exception as e:
                 db.rollback()
-                print(f"❌ Erreur: {e}")
+                print("❌ Erreur lors du calcul des statistiques.")
 
         elif choice == "0":
             break
