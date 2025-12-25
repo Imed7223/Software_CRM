@@ -1,10 +1,12 @@
 from app.crud import crud_users
 from app.models.users import Department
+from app.utils.auth import has_permission
 
 
 def menu_users(db, user):
     """Menu gestion des utilisateurs"""
-    if user.department != Department.MANAGEMENT:
+    # Management uniquement + permission explicite
+    if user.department != Department.MANAGEMENT or not has_permission(user, "manage_users"):
         print("❌ Accès refusé - Réservé au management")
         return
 
@@ -23,12 +25,14 @@ def menu_users(db, user):
 
         choice = input("Choisissez une option: ")
 
+        # 1. Liste des utilisateurs
         if choice == "1":
             users = crud_users.get_all_users(db)
             print(f"\n📋 Utilisateurs ({len(users)}):")
             for u in users:
                 print(f"  {u.id}: {u.full_name} - {u.email} - {u.department.value}")
 
+        # 2. Ajouter un utilisateur
         elif choice == "2":
             print("\n➕ Ajouter un utilisateur:")
             full_name = input("Nom complet: ")
@@ -45,25 +49,28 @@ def menu_users(db, user):
                 )
                 print(f"✅ Utilisateur créé: {new_user.full_name}")
             except Exception as e:
+                db.rollback()
                 print(f"❌ Erreur: {e}")
 
+        # 3. Voir un utilisateur
         elif choice == "3":
             user_id = input("\n👁️ ID de l'utilisateur: ")
             try:
-                user = crud_users.get_user_by_id(db, int(user_id))
-                if user:
+                target = crud_users.get_user_by_id(db, int(user_id))
+                if target:
                     print(f"\n👤 Détails:")
-                    print(f"  ID: {user.id}")
-                    print(f"  Nom: {user.full_name}")
-                    print(f"  Email: {user.email}")
-                    print(f"  ID employé: {user.employee_id}")
-                    print(f"  Département: {user.department.value}")
-                    print(f"  Créé le: {user.created_at}")
+                    print(f"  ID: {target.id}")
+                    print(f"  Nom: {target.full_name}")
+                    print(f"  Email: {target.email}")
+                    print(f"  ID employé: {target.employee_id}")
+                    print(f"  Département: {target.department.value}")
+                    print(f"  Créé le: {target.created_at}")
                 else:
                     print("❌ Utilisateur non trouvé")
-            except:
+            except Exception:
                 print("❌ ID invalide")
 
+        # 4. Modifier un utilisateur
         elif choice == "4":
             user_id = input("\n✏️ ID de l'utilisateur à modifier: ")
             try:
@@ -94,13 +101,15 @@ def menu_users(db, user):
 
                 if updates:
                     updated = crud_users.update_user(db, existing.id, **updates)
-                    print(f"✅ Utilisateur mis à jour")
+                    print("✅ Utilisateur mis à jour")
                 else:
                     print("⚠️  Aucune modification")
 
             except Exception as e:
+                db.rollback()
                 print(f"❌ Erreur: {e}")
 
+        # 5. Supprimer un utilisateur
         elif choice == "5":
             user_id = input("\n🗑️ ID de l'utilisateur à supprimer: ")
             try:
@@ -112,12 +121,14 @@ def menu_users(db, user):
                 confirm = input(f"Confirmer la suppression de {existing.full_name}? (o/n): ")
                 if confirm.lower() == 'o':
                     deleted = crud_users.delete_user(db, existing.id)
-                    print(f"✅ Utilisateur supprimé")
+                    print("✅ Utilisateur supprimé")
                 else:
                     print("❌ Annulé")
-            except:
-                print("❌ ID invalide")
+            except Exception:
+                db.rollback()
+                print("❌ ID invalide ou erreur lors de la suppression")
 
+        # 6. Statistiques
         elif choice == "6":
             try:
                 summary = crud_users.get_users_summary(db)
@@ -127,6 +138,7 @@ def menu_users(db, user):
                 print(f"  Support: {summary['support']}")
                 print(f"  Management: {summary['management']}")
             except Exception as e:
+                db.rollback()
                 print(f"❌ Erreur: {e}")
 
         elif choice == "0":

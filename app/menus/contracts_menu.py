@@ -1,5 +1,6 @@
 from app.crud import crud_contracts, crud_clients, crud_users
 from datetime import datetime
+from .filters_menu import menu_contract_filters
 
 
 def display_contracts(contracts):
@@ -161,7 +162,7 @@ def menu_contracts(db, user):
                 print("❌ ID invalide")
 
         elif choice == "8":  # Nouvelle option
-            from .filters_menu import menu_contract_filters
+            
             menu_contract_filters(db, user)
 
         elif choice == "9":

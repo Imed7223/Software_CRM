@@ -15,8 +15,16 @@ class Event(Base):
     notes = Column(Text)
 
     # FK
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
-    contract_id = Column(Integer, ForeignKey("contracts.id"), nullable=False)
+    client_id = Column(
+        Integer,
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False
+    )
+    contract_id = Column(
+        Integer,
+        ForeignKey("contracts.id", ondelete="CASCADE"),
+        nullable=False
+    )
     support_id = Column(Integer, ForeignKey("users.id"))
 
     # Relations

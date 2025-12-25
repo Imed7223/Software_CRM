@@ -1,6 +1,22 @@
+# Core
 sqlalchemy==2.0.25
 psycopg2-binary==2.9.9
-bcrypt==4.1.2
 python-dotenv==1.0.0
-colorama==0.4.6
+
+# Authentication & Security
+bcrypt==4.1.2
+pyjwt==2.8.0
+
+# CLI Interface
+click==8.1.7
+
+# Logging & Monitoring
 sentry-sdk==1.40.0
+
+# Testing
+pytest==8.0.0
+pytest-cov==4.1.0
+
+# Utilities
+colorama==0.4.6
+

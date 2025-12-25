@@ -1,5 +1,8 @@
 from app.crud import crud_clients, crud_users
 from datetime import datetime
+from app.utils.auth import has_permission
+from app.models.users import Department
+from .filters_menu import menu_client_filters
 
 
 def display_clients(clients):
@@ -34,28 +37,61 @@ def menu_clients(db, user):
             clients = crud_clients.get_all_clients(db)
             display_clients(clients)
 
+
         elif choice == "2":
+
+            # Seuls les commerciaux (et éventuellement management) peuvent créer des clients
+
+            if not has_permission(user, "manage_clients"):
+                print("❌ Vous n'avez pas la permission d'ajouter des clients.")
+
+                continue
+
             print("\n➕ Ajouter un client:")
 
-            # Afficher les commerciaux disponibles
-            commercials = crud_users.get_users_by_department(db, user.department)
-            print("Commerciaux disponibles:")
-            for c in commercials:
-                print(f"  {c.id}: {c.full_name}")
-            print()
-
             full_name = input("Nom complet: ")
+
             email = input("Email: ")
+
             phone = input("Téléphone: ")
+
             company = input("Entreprise: ")
 
             try:
-                commercial_id = int(input("ID commercial: "))
+
+                # Pour un commercial : le client est automatiquement associé à lui-même
+
+                if user.department == Department.SALES:
+
+                    commercial_id = user.id
+
+                else:
+
+                    # Management peut choisir un commercial
+
+                    commercials = crud_users.get_sales_users(db)
+
+                    print("Commerciaux disponibles:")
+
+                    for c in commercials:
+                        print(f"  {c.id}: {c.full_name}")
+
+                    print()
+
+                    commercial_id = int(input("ID commercial: "))
+
                 new_client = crud_clients.create_client(
+
                     db, full_name, email, phone, company, commercial_id
+
                 )
+
                 print(f"✅ Client créé: {new_client.full_name}")
+
             except Exception as e:
+
+                db.rollback()
+
                 print(f"❌ Erreur: {e}")
 
         elif choice == "3":
@@ -77,62 +113,121 @@ def menu_clients(db, user):
             except:
                 print("❌ ID invalide")
 
+
         elif choice == "4":
+
+            if not has_permission(user, "manage_clients"):
+                print("❌ Vous n'avez pas la permission de modifier des clients.")
+
+                continue
+
             client_id = input("\n✏️ ID du client à modifier: ")
+
             try:
+
                 existing = crud_clients.get_client_by_id(db, int(client_id))
+
                 if not existing:
                     print("❌ Client non trouvé")
+
+                    continue
+
+                # Un commercial ne peut modifier que ses propres clients
+
+                if user.department == Department.SALES and existing.commercial_id != user.id:
+                    print("❌ Vous ne pouvez modifier que vos propres clients.")
+
                     continue
 
                 print(f"Modification de {existing.full_name}")
+
                 print("Laissez vide pour ne pas modifier")
 
                 updates = {}
+
                 new_name = input(f"Nom [{existing.full_name}]: ")
+
                 if new_name:
                     updates['full_name'] = new_name
 
                 new_email = input(f"Email [{existing.email}]: ")
+
                 if new_email:
                     updates['email'] = new_email
 
                 new_phone = input(f"Téléphone [{existing.phone}]: ")
+
                 if new_phone:
                     updates['phone'] = new_phone
 
                 new_company = input(f"Entreprise [{existing.company_name}]: ")
+
                 if new_company:
                     updates['company_name'] = new_company
 
                 if updates:
+
                     updated = crud_clients.update_client(db, existing.id, **updates)
-                    print(f"✅ Client mis à jour")
+
+                    print("✅ Client mis à jour")
+
                 else:
+
                     print("⚠️  Aucune modification")
 
+
             except Exception as e:
+
+                db.rollback()
+
                 print(f"❌ Erreur: {e}")
 
+
+
         elif choice == "5":
+
+            if not has_permission(user, "manage_clients"):
+                print("❌ Vous n'avez pas la permission de supprimer des clients.")
+
+                continue
+
             client_id = input("\n🗑️ ID du client à supprimer: ")
+
             try:
+
                 existing = crud_clients.get_client_by_id(db, int(client_id))
+
                 if not existing:
                     print("❌ Client non trouvé")
+
+                    continue
+
+                # Un commercial ne peut supprimer que ses propres clients
+
+                if user.department == Department.SALES and existing.commercial_id != user.id:
+                    print("❌ Vous ne pouvez supprimer que vos propres clients.")
+
                     continue
 
                 confirm = input(f"Confirmer la suppression de {existing.full_name}? (o/n): ")
+
                 if confirm.lower() == 'o':
+
                     deleted = crud_clients.delete_client(db, existing.id)
-                    print(f"✅ Client supprimé")
+
+                    print("✅ Client supprimé")
+
                 else:
+
                     print("❌ Annulé")
-            except:
-                print("❌ ID invalide")
+
+            except Exception as e:
+
+                db.rollback()
+
+                print(f"❌ Erreur: {e}")
 
         elif choice == "6":
-            from .filters_menu import menu_client_filters
             menu_client_filters(db, user)
 
         elif choice == "0":

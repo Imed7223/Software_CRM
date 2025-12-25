@@ -1,6 +1,8 @@
 from app.crud import crud_events, crud_clients, crud_contracts, crud_users
 from datetime import datetime
+from app.utils.auth import has_permission
 from app.models.users import Department
+from .filters_menu import menu_event_filters
 
 
 def display_events(events):
@@ -36,10 +38,17 @@ def menu_events(db, user):
 
         choice = input("Choisissez une option: ")
 
+        # 1. Liste des événements
         if choice == "1":
             events = crud_events.get_all_events(db)
+
+            # SUPPORT : voir uniquement ses propres événements si manage_own_events
+            if user.department == Department.SUPPORT and has_permission(user, "manage_own_events"):
+                events = [e for e in events if e.support_id == user.id]
+
             display_events(events)
 
+        # 2. Ajouter un événement
         elif choice == "2":
             print("\n➕ Ajouter un événement:")
 
@@ -56,7 +65,6 @@ def menu_events(db, user):
                 start_date = datetime.strptime(start_str, '%Y-%m-%d %H:%M')
                 end_date = datetime.strptime(end_str, '%Y-%m-%d %H:%M')
 
-                # Optionnel: assigner un support
                 support_id = None
                 assign_support = input("Assigner un support maintenant? (o/n): ")
                 if assign_support.lower() == 'o':
@@ -72,8 +80,10 @@ def menu_events(db, user):
                 )
                 print(f"✅ Événement créé: {new_event.name}")
             except Exception as e:
+                db.rollback()
                 print(f"❌ Erreur: {e}")
 
+        # 3. Voir un événement
         elif choice == "3":
             event_id = input("\n👁️ ID de l'événement: ")
             try:
@@ -92,9 +102,10 @@ def menu_events(db, user):
                     print(f"  Contrat ID: {event.contract_id}")
                 else:
                     print("❌ Événement non trouvé")
-            except:
+            except Exception:
                 print("❌ ID invalide")
 
+        # 4. Modifier un événement
         elif choice == "4":
             event_id = input("\n✏️ ID de l'événement à modifier: ")
             try:
@@ -102,6 +113,15 @@ def menu_events(db, user):
                 if not existing:
                     print("❌ Événement non trouvé")
                     continue
+
+                # SUPPORT : ne peut modifier que ses propres événements
+                if user.department == Department.SUPPORT:
+                    if not has_permission(user, "manage_events"):
+                        print("❌ Vous n'avez pas la permission de modifier des événements.")
+                        continue
+                    if existing.support_id != user.id:
+                        print("❌ Vous ne pouvez modifier que vos événements assignés.")
+                        continue
 
                 print(f"Modification de {existing.name}")
                 print("Laissez vide pour ne pas modifier")
@@ -125,13 +145,15 @@ def menu_events(db, user):
 
                 if updates:
                     updated = crud_events.update_event(db, existing.id, **updates)
-                    print(f"✅ Événement mis à jour")
+                    print("✅ Événement mis à jour")
                 else:
                     print("⚠️  Aucune modification")
 
             except Exception as e:
+                db.rollback()
                 print(f"❌ Erreur: {e}")
 
+        # 5. Assigner un support
         elif choice == "5":
             event_id = input("\n👥 ID de l'événement: ")
             try:
@@ -147,10 +169,12 @@ def menu_events(db, user):
 
                 support_id = int(input("ID support: "))
                 updated = crud_events.assign_support_to_event(db, event.id, support_id)
-                print(f"✅ Support assigné")
+                print("✅ Support assigné")
             except Exception as e:
+                db.rollback()
                 print(f"❌ Erreur: {e}")
 
+        # 6. Supprimer un événement
         elif choice == "6":
             event_id = input("\n🗑️ ID de l'événement à supprimer: ")
             try:
@@ -159,36 +183,55 @@ def menu_events(db, user):
                     print("❌ Événement non trouvé")
                     continue
 
+                # SUPPORT : ne peut supprimer que ses propres événements
+                if user.department == Department.SUPPORT:
+                    if not has_permission(user, "manage_events"):
+                        print("❌ Vous n'avez pas la permission de supprimer des événements.")
+                        continue
+                    if existing.support_id != user.id:
+                        print("❌ Vous ne pouvez supprimer que vos événements assignés.")
+                        continue
+
                 confirm = input(f"Confirmer la suppression de {existing.name}? (o/n): ")
                 if confirm.lower() == 'o':
                     deleted = crud_events.delete_event(db, existing.id)
-                    print(f"✅ Événement supprimé")
+                    print("✅ Événement supprimé")
                 else:
                     print("❌ Annulé")
-            except:
-                print("❌ ID invalide")
+            except Exception as e:
+                db.rollback()
+                print(f"❌ Erreur: {e}")
 
-        elif choice == "7":  # Nouvelle option
-            from .filters_menu import menu_event_filters
+        # 7. Filtres
+        elif choice == "7":
+
             menu_event_filters(db, user)
 
+        # 8. Événements sans support
         elif choice == "8":
             events = crud_events.get_events_without_support(db)
             print(f"\n⚠️  Événements sans support ({len(events)}):")
             for event in events:
                 print(f"  {event.id}: {event.name} - {event.start_date} - {event.location}")
 
+        # 9. Événements à venir
         elif choice == "9":
             try:
                 days = int(input("Nombre de jours à venir (défaut: 7): ") or "7")
                 events = crud_events.get_upcoming_events(db, days)
+
+                # SUPPORT : ne montrer que ses événements à venir
+                if user.department == Department.SUPPORT and has_permission(user, "manage_own_events"):
+                    events = [e for e in events if e.support_id == user.id]
+
                 print(f"\n🔮 Événements à venir ({len(events)} dans {days} jours):")
                 for event in events:
                     support = f"Support: {event.support_id}" if event.support_id else "⚠️ Sans support"
                     print(f"  {event.id}: {event.name} - {event.start_date} - {event.location} - {support}")
-            except:
+            except Exception:
                 print("❌ Nombre invalide")
 
+        # 10. Statistiques
         elif choice == "10":
             try:
                 summary = crud_events.get_events_summary(db)
@@ -204,6 +247,7 @@ def menu_events(db, user):
                     percent = (summary['with_support'] / summary['total']) * 100
                     print(f"  Taux d'assignation: {percent:.1f}%")
             except Exception as e:
+                db.rollback()
                 print(f"❌ Erreur: {e}")
 
         elif choice == "0":

@@ -19,8 +19,16 @@ class Client(Base):
 
     # Relations
     commercial_contact = relationship("User", back_populates="clients")
-    contracts = relationship("Contract", back_populates="client")
-    events = relationship("Event", back_populates="client")
+    contracts = relationship(
+        "Contract",
+        back_populates="client",
+        cascade="all, delete-orphan"
+    )
+    events = relationship(
+        "Event",
+        back_populates="client",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Client(id={self.id},name='{self.full_name}', company='{self.company_name}')>"

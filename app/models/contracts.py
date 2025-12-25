@@ -13,13 +13,17 @@ class Contract(Base):
     is_signed = Column(Boolean, default=False)
 
     # FK
-    client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
+    client_id = Column(
+        Integer,
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False
+    )
     commercial_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Relations
     client = relationship("Client", back_populates="contracts")
     commercial = relationship("User", back_populates="contracts")
-    events = relationship("Event", back_populates="contract")
+    events = relationship( "Event",back_populates="contract",cascade="all, delete-orphan")
 
     def __repr__(self):
         signed = "✓" if self.is_signed else "✗"

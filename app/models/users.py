@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Enum, Text
 from sqlalchemy.sql import func
 from enum import Enum as PyEnum
 from sqlalchemy.orm import relationship
-from app.database.database import Base
+from app.database.database import Base, SessionLocal
 
 
 class Department(PyEnum):
@@ -27,6 +27,16 @@ class User(Base):
     clients = relationship("Client", back_populates="commercial_contact")
     contracts = relationship("Contract", back_populates="commercial")
     supported_events = relationship("Event", back_populates="support_contact")
+
+    @staticmethod
+    def login(email, password):
+        db = SessionLocal()
+        user = db.query(User).filter(User.email == email).first()
+        password = hash(password)
+        if user and user.hashed_password == password:  # Simplified for example; use hashing in production
+            return user
+        return None
+
 
     def __repr__(self):
         return f"<User {self.employee_id}:  name='{self.full_name}', department={self.department})>"
