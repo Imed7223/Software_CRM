@@ -10,10 +10,17 @@ from pathlib import Path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database.database import init_db, SessionLocal
-from app.utils.logging_config import setup_logging, log_error, log_info,log_warning,log_debug
+from app.utils.logging_config import (
+    setup_logging,
+    log_error,
+    log_info,
+    log_warning,
+    log_debug,
+)
 from app.menus.main_menu import main_menu
 from app.utils.auth import authenticate_user, create_access_token, decode_access_token
 from app.models.users import User
+from app.utils.security import security_manager  # SecurityManager (tentatives login)
 
 
 SESSION_FILE = os.path.join(Path.home(), ".crm_token")
@@ -49,11 +56,6 @@ def init_app():
         sys.exit(1)
 
 
-    except Exception as e:
-        print(f"❌ Erreur lors de l'initialisation: {e}")
-        sys.exit(1)
-
-
 def load_session_user():
     """
     Récupérer le token dans ~/.crm_token et renvoyer l'utilisateur si valide.
@@ -74,12 +76,13 @@ def load_session_user():
             return None
 
         db = SessionLocal()
-        try:
-            user = db.query(User).filter(User.email == email).first()
-            return db, user
-        finally:
-            # on ne ferme pas ici si on veut réutiliser db dans main_menu
-            ...
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            log_warning(f"Utilisateur pour le token JWT introuvable: {email}")
+            return None
+
+        return db, user
+
     except Exception as e:
         log_error("Erreur chargement session", e)
         return None
@@ -96,12 +99,14 @@ def save_session_token(user: User):
     })
     with open(SESSION_FILE, "w", encoding="utf-8") as f:
         f.write(token)
+    log_debug(f"Token de session sauvegardé pour {user.email} dans {SESSION_FILE}")
 
 
 def clear_session():
     """Supprimer le fichier de session"""
     if os.path.exists(SESSION_FILE):
         os.remove(SESSION_FILE)
+        log_info("Fichier de session ~/.crm_token supprimé")
 
 
 def login_flow():
@@ -112,15 +117,25 @@ def login_flow():
     db = SessionLocal()
     print("\n=== Connexion ===")
     email = input("Email: ")
+
+    # Vérifier le nombre de tentatives (SecurityManager)
+    if not security_manager.check_login_attempts(email):
+        db.close()
+        return None, None
+
     password = input("Mot de passe: ")
 
     user = authenticate_user(db, email, password)
     if user:
         print(f"\n✅ Bienvenue {user.full_name} ({user.department.value})")
+        log_info(f"Connexion réussie pour {email}")
+        security_manager.record_successful_attempt(email)
         save_session_token(user)
         return db, user
     else:
         print("\n❌ Identifiants incorrects")
+        log_warning(f"Tentative de connexion échouée pour {email}")
+        security_manager.record_failed_attempt(email)
         db.close()
         return None, None
 
@@ -138,8 +153,8 @@ if __name__ == "__main__":
         db, user = session
         if user:
             print(f"\n🔐 Session restaurée : {user.full_name} ({user.department.value})")
+            log_info(f"Session restaurée pour {user.email}")
         else:
-            # Token invalide / user supprimé
             db = None
             user = None
             clear_session()
@@ -155,8 +170,6 @@ if __name__ == "__main__":
 
     # 3. Lancer le menu principal
     try:
-        # main_menu attend normalement (db, user) ou fait son propre login
-        # adapte si nécessaire
         main_menu()
     except KeyboardInterrupt:
         print("\n\n👋 Application interrompue")
@@ -166,3 +179,4 @@ if __name__ == "__main__":
     finally:
         if db:
             db.close()
+

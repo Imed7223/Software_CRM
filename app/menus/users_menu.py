@@ -1,11 +1,11 @@
 from app.crud import crud_users
 from app.models.users import Department
 from app.utils.auth import has_permission
+from app.utils.validators import validate_email  
 
 
 def menu_users(db, user):
     """Menu gestion des utilisateurs"""
-    # Management uniquement + permission explicite
     if user.department != Department.MANAGEMENT or not has_permission(user, "manage_users"):
         print("❌ Accès refusé - Réservé au management")
         return
@@ -36,7 +36,12 @@ def menu_users(db, user):
         elif choice == "2":
             print("\n➕ Ajouter un utilisateur:")
             full_name = input("Nom complet: ")
+
             email = input("Email: ")
+            if not validate_email(email):
+                print("❌ Email invalide")
+                continue
+
             employee_id = input("ID employé: ")
             password = input("Mot de passe: ")
 
@@ -83,12 +88,16 @@ def menu_users(db, user):
                 print("Laissez vide pour ne pas modifier")
 
                 updates = {}
+
                 new_name = input(f"Nom [{existing.full_name}]: ")
                 if new_name:
                     updates['full_name'] = new_name
 
                 new_email = input(f"Email [{existing.email}]: ")
                 if new_email:
+                    if not validate_email(new_email):
+                        print("❌ Email invalide")
+                        continue
                     updates['email'] = new_email
 
                 new_dept = input(f"Département [{existing.department.value}]: ")

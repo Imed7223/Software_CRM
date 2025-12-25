@@ -1,8 +1,9 @@
-from app.crud import crud_events, crud_clients, crud_contracts, crud_users
+from app.crud import crud_events, crud_users
 from datetime import datetime
 from app.utils.auth import has_permission
 from app.models.users import Department
 from .filters_menu import menu_event_filters
+from app.utils.validators import validate_datetime
 
 
 def display_events(events):
@@ -54,8 +55,17 @@ def menu_events(db, user):
 
             try:
                 name = input("Nom: ")
+
                 start_str = input("Date début (YYYY-MM-DD HH:MM): ")
+                if not validate_datetime(start_str, '%Y-%m-%d %H:%M'):
+                    print("❌ Date/heure de début invalide")
+                    continue
+
                 end_str = input("Date fin (YYYY-MM-DD HH:MM): ")
+                if not validate_datetime(end_str, '%Y-%m-%d %H:%M'):
+                    print("❌ Date/heure de fin invalide")
+                    continue
+
                 location = input("Lieu: ")
                 attendees = int(input("Nombre de participants: "))
                 notes = input("Notes: ")
@@ -204,7 +214,6 @@ def menu_events(db, user):
 
         # 7. Filtres
         elif choice == "7":
-
             menu_event_filters(db, user)
 
         # 8. Événements sans support
