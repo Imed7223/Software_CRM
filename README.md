@@ -1,38 +1,69 @@
-# Software CRM
+EpicEvents CRM 🚀
+Application de gestion clientèle (CRM) pour l'entreprise EpicEvents, développée en Python avec PostgreSQL.
 
-Application de gestion clientèle pour l'entreprise Epicevents.
+📋 Fonctionnalités
+🔐 Authentification & Sécurité
+Connexion avec email/mot de passe
+Hachage bcrypt des mots de passe
+Tokens JWT pour les sessions
+Limitation des tentatives de connexion
+Permissions par département (Gestion, Commercial, Support)
+👥 Gestion des Clients
+Création, lecture, mise à jour, suppression (CRUD)
+Attribution automatique aux commerciaux
+Recherche avancée
+Suivi des contacts
+📄 Gestion des Contrats
+Création de contrats
+Signature électronique
+Gestion des paiements
+Filtres (non signés, non payés, etc.)
+📅 Gestion des Événements
+Planification d'événements
+Attribution de support
+Filtres par date, lieu, support
+Événements sans support
+📊 Reporting
+Statistiques utilisateurs
+Statistiques contrats
+Statistiques événements
+Rapports personnalisables
+🚨 Monitoring
+Journalisation avec Sentry
+Audit des actions sensibles
+Surveillance des erreurs en temps réel
+🚀 Installation Rapide
+Prérequis
+Python 3.9+
+PostgreSQL 12+
+pip
+Installation
+# 1. Cloner le projet
+git clone <repository-url>
+cd Software_CRM
 
-## 🚀 Installation
-
-### 1. Prérequis
-- Python 3.9+
-- PostgreSQL 12+
-- pip
-
-### 2. Installation
-```bash
-# Cloner le projet
-git clone https://github.com/Imed7223/Software_CRM.git
-cd Epicevents-crm
-
-# Créer un environnement virtuel
+# 2. Créer un environnement virtuel
 python -m venv venv
 
-# Activer l'environnement
-# Sur Windows:
+# 3. Activer l'environnement
+# Windows:
 venv\Scripts\activate
-# Sur Linux/Mac:
+# Linux/Mac:
 source venv/bin/activate
 
-# Installer les dépendances
+# 4. Installer les dépendances
 pip install -r requirements.txt
 
-# Configurer l'environnement
+# 5. Configurer l'environnement
 cp .env.example .env
 # Éditer .env avec vos paramètres
 
-# Créer la base de données
+# 6. Créer les bases de données
 createdb epicevents
+createdb epicevents_test
 
-# Lancer l'application
-python main.py
+# 7. Initialiser l'application
+python main.py setup --demo
+
+# 8. Lancer l'application (COMMANDE DEMANDÉE PAR LE CAHIER DES CHARGES)
+python main.py login
