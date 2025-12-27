@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database.database import Base
 
+
 class Contract(Base):
     __tablename__ = "contracts"
 
@@ -23,7 +24,7 @@ class Contract(Base):
     # Relations
     client = relationship("Client", back_populates="contracts")
     commercial = relationship("User", back_populates="contracts")
-    events = relationship( "Event",back_populates="contract",cascade="all, delete-orphan")
+    events = relationship("Event", back_populates="contract", cascade="all, delete-orphan")
 
     def __repr__(self):
         signed = "✓" if self.is_signed else "✗"

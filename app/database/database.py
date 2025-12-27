@@ -3,7 +3,6 @@ import logging
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import text
 
 
 load_dotenv()
@@ -38,7 +37,6 @@ Base = declarative_base()
 
 def init_db():
     """Initialiser la base de données (créer les tables)"""
-    from app.models import users, clients, contracts, events
 
     Base.metadata.create_all(bind=engine)
     print("✅ Tables créées avec succès !")

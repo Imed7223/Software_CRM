@@ -1,8 +1,7 @@
 # app/utils/auth.py
 
 import os
-from datetime import datetime, timedelta
-
+from datetime import datetime, timedelta, UTC
 import bcrypt
 import jwt
 from dotenv import load_dotenv
@@ -95,8 +94,6 @@ def require_permission(permission: str):
 
 
 # ==== JWT pour la session CLI ====
-
-
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """
     Créer un jeton JWT contenant au moins :
@@ -105,7 +102,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
       - user_id : id BDD
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

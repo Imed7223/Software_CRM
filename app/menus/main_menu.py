@@ -29,12 +29,8 @@ def login():
         return None, None
 
 
-def main_menu():
+def main_menu(db, user):
     """Menu principal"""
-    db, user = login()
-    if not user:
-        return
-
     try:
         while True:
             print("\n" + "=" * 50)
@@ -65,6 +61,5 @@ def main_menu():
                 break
             else:
                 print("\n❌ Option invalide")
-
     finally:
         db.close()

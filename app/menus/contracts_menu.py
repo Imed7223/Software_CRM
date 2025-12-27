@@ -108,7 +108,7 @@ def menu_contracts(db, user):
             try:
                 contract = crud_contracts.get_contract_by_id(db, int(contract_id))
                 if contract:
-                    print(f"\n📄 Détails contrat:")
+                    print("\n📄 Détails contrat:")
                     print(f"  ID: {contract.id}")
                     print(f"  Montant total: {contract.total_amount}€")
                     print(f"  Montant restant: {contract.remaining_amount}€")
@@ -258,7 +258,7 @@ def menu_contracts(db, user):
         elif choice == "9":
             try:
                 summary = crud_contracts.get_contract_summary(db)
-                print(f"\n📊 Statistiques des contrats:")
+                print("\n📊 Statistiques des contrats:")
                 print(f"  Total: {summary['total']}")
                 print(f"  Signés: {summary['signed']}")
                 print(f"  Non signés: {summary['unsigned']}")

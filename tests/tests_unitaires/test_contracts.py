@@ -68,3 +68,13 @@ def test_add_payment(db):
 
     updated = crud_contracts.add_payment(db, contract.id, 200.0)
     assert updated.remaining_amount == 800.0
+
+
+def test_add_payment_cannot_go_negative(db):
+    user, client = _create_user_and_client(db)
+    contract = crud_contracts.create_contract(
+        db, 1000.0, 1000.0, False, client.id, user.id
+    )
+
+    with pytest.raises(Exception):
+        crud_contracts.add_payment(db, contract.id, 2000.0)

@@ -5,11 +5,11 @@ Point d'entrée principal
 import os
 import sys
 from pathlib import Path
-
-# Ajouter le répertoire parent au path pour les imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from app.database.database import init_db, SessionLocal
+from app.menus.main_menu import main_menu
+from app.utils.auth import authenticate_user, create_access_token, decode_access_token
+from app.models.users import User
+from app.utils.security import security_manager  # SecurityManager (tentatives login)
+from app.database.database import SessionLocal
 from app.utils.logging_config import (
     setup_logging,
     log_error,
@@ -17,11 +17,9 @@ from app.utils.logging_config import (
     log_warning,
     log_debug,
 )
-from app.menus.main_menu import main_menu
-from app.utils.auth import authenticate_user, create_access_token, decode_access_token
-from app.models.users import User
-from app.utils.security import security_manager  # SecurityManager (tentatives login)
 
+# Ajouter le répertoire parent au path pour les imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 SESSION_FILE = os.path.join(Path.home(), ".crm_token")
 
@@ -141,28 +139,27 @@ def login_flow():
 
 
 if __name__ == "__main__":
-    # Initialiser l'application (logging, env, etc.)
+    force_login = len(sys.argv) > 1 and sys.argv[1] == "login"
+
     logger = init_app()
 
-    # Ici tu peux appeler init_db() si tu veux créer les tables à la première exécution
-    # init_db()
+    db = None
+    user = None
 
-    # 1. Tenter de récupérer une session existante via JWT (~/.crm_token)
-    session = load_session_user()
-    if session:
-        db, user = session
-        if user:
+    if force_login:
+        # On force la reconnexion : on supprime le fichier de session
+        clear_session()
+    else:
+        # 1. Tenter de récupérer une session existante via JWT (~/.crm_token)
+        session = load_session_user()
+        if session:
+            db, user = session
             print(f"\n🔐 Session restaurée : {user.full_name} ({user.department.value})")
             log_info(f"Session restaurée pour {user.email}")
         else:
-            db = None
-            user = None
-            clear_session()
-    else:
-        db = None
-        user = None
+            db, user = None, None
 
-    # 2. Si pas de session valide, lancer le process de connexion
+    # 2. Si pas de session valide ou si on a forcé login, lancer le process de connexion
     if not user:
         db, user = login_flow()
         if not user:
@@ -170,7 +167,7 @@ if __name__ == "__main__":
 
     # 3. Lancer le menu principal
     try:
-        main_menu()
+        main_menu(db, user)
     except KeyboardInterrupt:
         print("\n\n👋 Application interrompue")
     except Exception as e:
@@ -179,4 +176,3 @@ if __name__ == "__main__":
     finally:
         if db:
             db.close()
-

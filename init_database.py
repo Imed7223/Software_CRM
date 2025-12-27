@@ -1,12 +1,8 @@
-#!/usr/bin/env python3
 """
 Script d'initialisation de la base de données avec des données de démonstration
 """
 import sys
 import os
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from datetime import datetime
 from app.database.database import SessionLocal
 from app.models.users import User, Department
@@ -14,6 +10,8 @@ from app.models.clients import Client
 from app.models.contracts import Contract
 from app.models.events import Event
 from app.utils.auth import hash_password
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def check_data_exists(db):
@@ -401,7 +399,6 @@ def create_initial_data():
         raise
     finally:
         db.close()
-
 
 if __name__ == "__main__":
     print("🔄 Initialisation de la base de données Epicevents CRM...")

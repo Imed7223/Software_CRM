@@ -3,7 +3,6 @@ import pytest
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 from app.database.database import Base
 from app.crud import crud_users, crud_clients, crud_contracts, crud_events
 
@@ -80,3 +79,78 @@ def test_get_events_without_support(db):
     events = crud_events.get_events_without_support(db)
     assert len(events) == 1
     assert events[0].name == "Without support"
+
+
+# tests/test_events.py
+def test_cannot_create_event_if_contract_not_signed(db):
+    sales = crud_users.create_user(
+        db, "Commercial", "sales@test.com", "S001", "pass", "SALES"
+    )
+    support = crud_users.create_user(
+        db, "Support", "support@test.com", "SP001", "pass", "SUPPORT"
+    )
+    client = crud_clients.create_client(
+        db, "Client Test", "client@test.com", "+33123456789", "Test Corp", sales.id
+    )
+    contract = crud_contracts.create_contract(
+        db, 1000.0, 1000.0, False, client.id, sales.id  # contrat NON signé
+    )
+
+    start = datetime.now()
+    end = start + timedelta(hours=4)
+
+    with pytest.raises(Exception):
+        crud_events.create_event(
+            db=db,
+            name="Event invalid",
+            start_date=start,
+            end_date=end,
+            location="City",
+            attendees=10,
+            notes="",
+            client_id=client.id,
+            contract_id=contract.id,
+            support_id=support.id,
+        )
+
+
+def test_create_event_invalid_dates(db):
+    sales, support, client, contract = _create_user_client_contract(db)
+
+    start = datetime.now()
+    end = start - timedelta(hours=1)  # fin avant début
+
+    with pytest.raises(ValueError, match="date de fin"):
+        crud_events.create_event(
+            db=db,
+            name="Bad dates",
+            start_date=start,
+            end_date=end,
+            location="City",
+            attendees=10,
+            notes="",
+            client_id=client.id,
+            contract_id=contract.id,
+            support_id=support.id,
+        )
+
+
+def test_create_event_negative_attendees(db):
+    sales, support, client, contract = _create_user_client_contract(db)
+
+    start = datetime.now()
+    end = start + timedelta(hours=1)
+
+    with pytest.raises(ValueError, match="participants ne peut pas être négatif"):
+        crud_events.create_event(
+            db=db,
+            name="Bad attendees",
+            start_date=start,
+            end_date=end,
+            location="City",
+            attendees=-5,
+            notes="",
+            client_id=client.id,
+            contract_id=contract.id,
+            support_id=support.id,
+        )

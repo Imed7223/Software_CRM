@@ -1,3 +1,13 @@
 .env
-.idea
-__pycache__
+.idea/
+.vscode/
+__pycache__/
+htmlcov/
+.coverage
+
+.venv/
+venv/
+env/
+*.py[cod]
+.pytest_cache/
+.cache/

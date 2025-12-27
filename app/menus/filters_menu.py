@@ -379,7 +379,8 @@ def menu_client_filters(db, user):
                         contracts = crud_contracts.get_contracts_by_client(db, c.id)
                         signed = sum(1 for ct in contracts if ct.is_signed)
                         print(
-                            f"  {c.id}: {c.full_name} - {c.company_name} - Contrats: {len(contracts)} (Signés: {signed})")
+                            f"  {c.id}: {c.full_name} - {c.company_name} - Contrats: {len(contracts)} "
+                            f"(Signés: {signed})")
                 else:
                     print("📭 Aucun client assigné")
             else:

@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database.database import Base
 from app.crud import crud_clients, crud_users
-from app.models.users import Department
+
 
 TEST_DATABASE_URL = "postgresql://postgres:Imed7223@localhost:5432/epicevents_test"
 engine = create_engine(TEST_DATABASE_URL)
@@ -58,3 +58,15 @@ def test_update_client(db):
 
     assert updated.full_name == "Client Modifié"
     assert updated.email == "new@test.com"
+
+
+def test_create_client_without_commercial_fails(db):
+    with pytest.raises(Exception):
+        crud_clients.create_client(
+            db=db,
+            full_name="Client Sans Com",
+            email="noc@test.com",
+            phone="+3300000000",
+            company_name="No Sales Corp",
+            commercial_id=None
+        )

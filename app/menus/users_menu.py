@@ -55,7 +55,7 @@ def menu_users(db, user):
                 print(f"✅ Utilisateur créé: {new_user.full_name}")
             except Exception as e:
                 db.rollback()
-                print("❌ Erreur lors de la création de l'utilisateur.")
+                print(f"❌ Erreur lors de la création de l'utilisateur: {e}")
 
         # 3. Voir un utilisateur
         elif choice == "3":
@@ -66,7 +66,7 @@ def menu_users(db, user):
             try:
                 target = crud_users.get_user_by_id(db, int(user_id))
                 if target:
-                    print(f"\n👤 Détails:")
+                    print("\n👤 Détails:")
                     print(f"  ID: {target.id}")
                     print(f"  Nom: {target.full_name}")
                     print(f"  Email: {target.email}")
@@ -115,14 +115,14 @@ def menu_users(db, user):
                     updates['password'] = new_password
 
                 if updates:
-                    updated = crud_users.update_user(db, existing.id, **updates)
+                    crud_users.update_user(db, existing.id, **updates)
                     print("✅ Utilisateur mis à jour")
                 else:
                     print("⚠️  Aucune modification")
 
             except Exception as e:
                 db.rollback()
-                print("❌ Erreur lors de la mise à jour de l'utilisateur.")
+                print(f"❌ Erreur lors de la mise à jour de l'utilisateur:{e}")
 
         # 5. Supprimer un utilisateur
         elif choice == "5":
@@ -139,25 +139,28 @@ def menu_users(db, user):
                 confirm = input(f"Confirmer la suppression de {existing.full_name}? (o/n): ")
                 if confirm.lower() == 'o':
                     deleted = crud_users.delete_user(db, existing.id)
-                    print("✅ Utilisateur supprimé")
+                    if deleted:
+                        print("✅ Utilisateur supprimé")
+                    else:
+                        print("❌ Impossible de supprimer cet Utilisateur .")
                 else:
                     print("❌ Annulé")
-            except Exception:
+            except Exception as e:
                 db.rollback()
-                print("❌ Erreur lors de la suppression de l'utilisateur.")
+                print(f"❌ Erreur lors de la suppression de l'utilisateur: {e}")
 
         # 6. Statistiques
         elif choice == "6":
             try:
                 summary = crud_users.get_users_summary(db)
-                print(f"\n📊 Statistiques:")
+                print("\n📊 Statistiques:")
                 print(f"  Total: {summary['total']}")
                 print(f"  Sales: {summary['sales']}")
                 print(f"  Support: {summary['support']}")
                 print(f"  Management: {summary['management']}")
             except Exception as e:
                 db.rollback()
-                print("❌ Erreur lors du calcul des statistiques.")
+                print(f"❌ Erreur lors du calcul des statistiques: {e}")
 
         elif choice == "0":
             break

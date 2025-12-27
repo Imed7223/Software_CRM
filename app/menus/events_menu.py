@@ -127,7 +127,7 @@ def menu_events(db, user):
             try:
                 event = crud_events.get_event_by_id(db, int(event_id))
                 if event:
-                    print(f"\n📅 Détails événement:")
+                    print("\n📅 Détails événement:")
                     print(f"  ID: {event.id}")
                     print(f"  Nom: {event.name}")
                     print(f"  Début: {event.start_date}")
@@ -300,7 +300,7 @@ def menu_events(db, user):
         elif choice == "10":
             try:
                 summary = crud_events.get_events_summary(db)
-                print(f"\n📊 Statistiques des événements:")
+                print("\n📊 Statistiques des événements:")
                 print(f"  Total: {summary['total']}")
                 print(f"  Avec support: {summary['with_support']}")
                 print(f"  Sans support: {summary['without_support']}")

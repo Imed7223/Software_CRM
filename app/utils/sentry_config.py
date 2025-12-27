@@ -23,7 +23,7 @@ def init_sentry():
     # Intégration du logging Python
     sentry_logging = LoggingIntegration(
         level=logging.INFO,       # Capturer les logs à partir de INFO
-        event_level=logging.ERROR # Envoyer à Sentry à partir de ERROR
+        event_level=logging.ERROR  # Envoyer à Sentry à partir de ERROR
     )
 
     sentry_sdk.init(

@@ -81,7 +81,7 @@ def menu_clients(db, user):
 
             except Exception as e:
                 db.rollback()
-                print("❌ Erreur lors de la création du client. Vérifiez les valeurs saisies.")
+                print(f"❌ Erreur lors de la création du client. Vérifiez les valeurs saisies: {e}")
 
         elif choice == "3":
             client_id = input("\n👁️ ID du client: ")
@@ -91,7 +91,7 @@ def menu_clients(db, user):
             try:
                 client = crud_clients.get_client_by_id(db, int(client_id))
                 if client:
-                    print(f"\n👤 Détails client:")
+                    print("\n👤 Détails client:")
                     print(f"  ID: {client.id}")
                     print(f"  Nom: {client.full_name}")
                     print(f"  Email: {client.email}")
@@ -151,14 +151,14 @@ def menu_clients(db, user):
                     updates['company_name'] = new_company
 
                 if updates:
-                    updated = crud_clients.update_client(db, existing.id, **updates)
+                    crud_clients.update_client(db, existing.id, **updates)
                     print("✅ Client mis à jour")
                 else:
                     print("⚠️  Aucune modification")
 
             except Exception as e:
+                print(f"❌ Erreur lors de la mise à jour du client: {e}")
                 db.rollback()
-                print("❌ Erreur lors de la mise à jour du client.")
 
         elif choice == "5":
             if not has_permission(user, "manage_clients"):
@@ -184,13 +184,16 @@ def menu_clients(db, user):
                 confirm = input(f"Confirmer la suppression de {existing.full_name}? (o/n): ")
                 if confirm.lower() == 'o':
                     deleted = crud_clients.delete_client(db, existing.id)
-                    print("✅ Client supprimé")
+                    if deleted:
+                        print("✅ Client supprimé")
+                    else:
+                        print("❌ Impossible de supprimer ce client.")
                 else:
                     print("❌ Annulé")
 
             except Exception as e:
                 db.rollback()
-                print("❌ Erreur lors de la suppression du client.")
+                print(f"❌ Erreur lors de la suppression du client: {e}")
 
         elif choice == "6":
             menu_client_filters(db, user)

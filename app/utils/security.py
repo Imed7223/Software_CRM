@@ -2,11 +2,10 @@
 Fonctions de sécurité avancées
 """
 import os
-import time
 from datetime import datetime, timedelta
-from typing import Dict, Optional
+from typing import Dict
 from sqlalchemy.orm import Session
-from app.models.users import User
+from app.crud import crud_users
 
 
 class SecurityManager:
@@ -101,9 +100,6 @@ def audit_log(db: Session, user_id: int, action: str, details: str = ""):
         action: Action effectuée
         details: Détails supplémentaires
     """
-    from app.models.audit import AuditLog  # À créer si nécessaire
-    from app.crud import crud_users
-
     user = crud_users.get_user_by_id(db, user_id)
     username = user.full_name if user else f"User {user_id}"
 

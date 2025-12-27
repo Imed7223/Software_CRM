@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import datetime
 from app.models.contracts import Contract
 from app.models.clients import Client
 from app.models.users import User
@@ -110,7 +109,7 @@ def add_payment(db: Session, contract_id: int, amount: float):
 def get_contract_summary(db: Session):
     """Obtenir un résumé des contrats"""
     total = db.query(func.count(Contract.id)).scalar() or 0
-    signed = db.query(func.count(Contract.id)).filter(Contract.is_signed == True).scalar() or 0
+    signed = db.query(func.count(Contract.id)).filter(Contract.is_signed).scalar() or 0
     total_amount = db.query(func.coalesce(func.sum(Contract.total_amount), 0)).scalar() or 0
     remaining = db.query(func.coalesce(func.sum(Contract.remaining_amount), 0)).scalar() or 0
 
@@ -126,7 +125,7 @@ def get_contract_summary(db: Session):
 
 def get_unsigned_contracts(db: Session):
     """Obtenir tous les contrats non signés"""
-    return db.query(Contract).filter(Contract.is_signed == False).all()
+    return db.query(Contract).filter(Contract.is_signed.is_(False)).all()
 
 
 def get_unpaid_contracts(db: Session):

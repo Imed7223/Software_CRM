@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, Text
+from sqlalchemy import Column, Integer, String, DateTime, Enum
 from sqlalchemy.sql import func
 from enum import Enum as PyEnum
 from sqlalchemy.orm import relationship
@@ -36,7 +36,6 @@ class User(Base):
         if user and user.hashed_password == password:  # Simplified for example; use hashing in production
             return user
         return None
-
 
     def __repr__(self):
         return f"<User {self.employee_id}:  name='{self.full_name}', department={self.department})>"

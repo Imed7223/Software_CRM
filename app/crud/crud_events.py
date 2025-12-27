@@ -116,7 +116,7 @@ def assign_support_to_event(db: Session, event_id: int, support_id: int):
 
 def get_events_without_support(db: Session):
     """Obtenir les événements sans support"""
-    return db.query(Event).filter(Event.support_id == None).all()
+    return db.query(Event).filter(Event.support_id.is_(None)).all()
 
 
 def get_upcoming_events(db: Session, days: int = 7):
@@ -133,7 +133,7 @@ def get_events_summary(db: Session):
     now = datetime.now()
 
     total = db.query(func.count(Event.id)).scalar() or 0
-    without_support = db.query(func.count(Event.id)).filter(Event.support_id == None).scalar() or 0
+    without_support = db.query(func.count(Event.id)).filter(Event.support_id.is_(None)).scalar() or 0
     upcoming = db.query(func.count(Event.id)).filter(Event.start_date > now).scalar() or 0
     ongoing = db.query(func.count(Event.id)).filter(
         Event.start_date <= now,
