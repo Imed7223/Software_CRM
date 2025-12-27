@@ -5,6 +5,7 @@ from app.menus.clients_menu import menu_clients
 from app.menus.contracts_menu import menu_contracts
 from app.menus.events_menu import menu_events
 from app.models.users import Department
+from app.utils.auth import get_user_permissions
 
 
 def login():
@@ -42,7 +43,7 @@ def main_menu(db, user):
 
             if user.department == Department.MANAGEMENT:
                 print("4. 👤  Gestion des utilisateurs")
-
+            print("9. 🔧  Mon compte")
             print("0. 🚪  Déconnexion")
             print("-" * 50)
 
@@ -56,6 +57,8 @@ def main_menu(db, user):
                 menu_events(db, user)
             elif choice == "4" and user.department == Department.MANAGEMENT:
                 menu_users(db, user)
+            elif choice == "9":
+                show_user_profile(db, user)
             elif choice == "0":
                 print("\n👋 Au revoir !")
                 break
@@ -63,3 +66,23 @@ def main_menu(db, user):
                 print("\n❌ Option invalide")
     finally:
         db.close()
+
+
+def show_user_profile(db, user):
+    """Afficher le profil de l'utilisateur"""
+    print("\n" + "=" * 50)
+    print(f"        MON PROFIL - {user.full_name}")
+    print("=" * 50)
+    print(f"👤 Nom complet: {user.full_name}")
+    print(f"📧 Email: {user.email}")
+    print(f"🆔 ID employé: {user.employee_id}")
+    print(f"🏢 Département: {user.department.value}")
+    print(f"📅 Créé le: {user.created_at}")
+    print(f"🔄 Dernière mise à jour: {user.updated_at}")
+    print("-" * 50)
+
+    # Afficher les permissions
+    permissions = get_user_permissions(user)
+    print("🔑 Permissions:")
+    for perm in permissions:
+        print(f"  • {perm}")
