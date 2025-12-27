@@ -400,6 +400,7 @@ def create_initial_data():
     finally:
         db.close()
 
+
 if __name__ == "__main__":
     print("🔄 Initialisation de la base de données Epicevents CRM...")
 
