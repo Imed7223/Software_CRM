@@ -174,7 +174,9 @@ def menu_contracts(db, user):
         # 5. Signer un contrat
         elif choice == "5":
             # Le support ne doit pas signer de contrats
-            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts"):
+            if (user.department == Department.SUPPORT
+                    or Department.MANAGEMENT
+                    or not has_permission(user, "manage_contracts")):
                 print("❌ Vous n'avez pas la permission de signer des contrats.")
                 continue
 
@@ -226,7 +228,9 @@ def menu_contracts(db, user):
         # 7. Supprimer un contrat
         elif choice == "7":
             # Le support ne doit pas supprimer de contrats
-            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts"):
+            if (user.department == Department.SUPPORT
+                    or Department.MANAGEMENT
+                    or not has_permission(user, "manage_contracts")):
                 print("❌ Vous n'avez pas la permission de supprimer des contrats.")
                 continue
 

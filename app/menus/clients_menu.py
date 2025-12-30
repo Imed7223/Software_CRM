@@ -177,8 +177,8 @@ def menu_clients(db, user):
                     continue
 
                 # Un commercial ne peut supprimer que ses propres clients
-                if user.department == Department.SALES and existing.commercial_id != user.id:
-                    print("❌ Vous ne pouvez supprimer que vos propres clients.")
+                if user.department == Department.SALES or Department.SALES:
+                    print("❌ Vous ne pouvez pas supprimer les clients.")
                     continue
 
                 confirm = input(f"Confirmer la suppression de {existing.full_name}? (o/n): ")

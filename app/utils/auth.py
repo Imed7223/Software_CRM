@@ -57,10 +57,9 @@ def get_user_permissions(user: User):
         ],
         Department.MANAGEMENT: [
             "view_all",
-            "manage_all",
             "manage_users",
-            "view_reports",
-            "manage_permissions",
+            "manage_contracts",
+            "manage_events ",
         ],
     }
     return permissions.get(user.department, [])

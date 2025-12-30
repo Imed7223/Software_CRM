@@ -52,8 +52,8 @@ def menu_events(db, user):
         # 2. Ajouter un événement
         elif choice == "2":
             # Le support ne peut pas créer d'événements (c'est le commercial / management)
-            if user.department == Department.SUPPORT:
-                print("❌ Le département support ne peut pas créer d'événements.")
+            if user.department == Department.SUPPORT or Department.MANAGEMENT:
+                print("❌ Le département support et management ne peuvent pas créer d'événements.")
                 continue
 
             print("\n➕ Ajouter un événement:")
@@ -234,6 +234,13 @@ def menu_events(db, user):
 
         # 6. Supprimer un événement
         elif choice == "6":
+            if (user.department == Department.SUPPORT
+                    or Department.MANAGEMENT
+                    or not has_permission(user, "manage_events")):
+
+                print("❌ Vous n'avez pas la permission de supprimer des contrats.")
+                continue
+
             event_id = input("\n🗑️ ID de l'événement à supprimer: ")
             if not validate_integer(event_id):
                 print("❌ ID invalide. Veuillez saisir un entier.")

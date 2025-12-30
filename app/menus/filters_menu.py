@@ -187,6 +187,10 @@ def menu_event_filters(db, user):
                         print(f"  {e.id}: {e.name} - {e.start_date} - {e.location}")
                 else:
                     print("🔍 Aucun résultat")
+            elif choice == "0":
+                break
+            else:
+                print("❌ Option invalide")
 
         # Management team filters
         elif user.department == Department.MANAGEMENT:
@@ -266,6 +270,11 @@ def menu_event_filters(db, user):
                 else:
                     print("🔍 Aucun résultat")
 
+            elif choice == "0":
+                break
+            else:
+                print("❌ Option invalide")
+
         # Sales team filters
         elif user.department == Department.SALES:
             if choice == "1":
@@ -297,11 +306,11 @@ def menu_event_filters(db, user):
                 else:
                     print("📭 Aucun événement à venir pour vos clients")
 
-        elif choice == "0":
-            break
+            elif choice == "0":
+                break
 
-        else:
-            print("❌ Option invalide")
+            else:
+                print("❌ Option invalide")
 
 
 def menu_client_filters(db, user):
