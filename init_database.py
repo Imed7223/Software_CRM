@@ -4,7 +4,7 @@ Script d'initialisation de la base de données avec des données de démonstrati
 import sys
 import os
 from datetime import datetime
-from app.database.database import SessionLocal
+from app.database.database import SessionLocal, Base, engine
 from app.models.users import User, Department
 from app.models.clients import Client
 from app.models.contracts import Contract
@@ -14,14 +14,31 @@ from app.utils.auth import hash_password
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
+def reset_database():
+    """
+    Supprimer toutes les tables (DROP) puis les recréer.
+    ⚠️ IRRÉVERSIBLE : toutes les données sont perdues.
+    """
+    confirm = input("⚠️ Cette opération va SUPPRIMER toutes les données. Continuer ? (o/n): ")
+    if confirm.lower() != "o":
+        print("❌ Annulé.")
+        return
+
+    print("🔄 Suppression des tables...")
+    Base.metadata.drop_all(bind=engine)
+    print("✅ Tables supprimées.")
+
+    print("🔄 Recréation des tables...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Tables recréées (base vide).")
+
+
 def check_data_exists(db):
     """Vérifie si des données existent déjà"""
-    # Vérifier les utilisateurs
     user_count = db.query(User).count()
     if user_count > 0:
         print(f"⚠️  {user_count} utilisateurs existent déjà dans la base")
         return True
-
     return False
 
 
@@ -30,7 +47,6 @@ def create_initial_data():
     db = SessionLocal()
 
     try:
-        # Vérifier si des données existent déjà
         if check_data_exists(db):
             response = input("Voulez-vous quand même réinitialiser les données ? (o/n): ")
             if response.lower() != 'o':
@@ -38,7 +54,8 @@ def create_initial_data():
                 return
 
         print("🔄 Création des données de démonstration...")
-        # 1. Créer les utilisateurs
+
+        # 1. Utilisateurs
         users_data = [
             {
                 'employee_id': 'EMP001',
@@ -100,7 +117,6 @@ def create_initial_data():
 
         users = {}
         for user_data in users_data:
-            # Vérifier si l'utilisateur existe déjà
             existing = db.query(User).filter(
                 (User.employee_id == user_data['employee_id']) |
                 (User.email == user_data['email'])
@@ -125,7 +141,7 @@ def create_initial_data():
 
         print(f"✅ {len(users)} utilisateurs créés")
 
-        # 2. Créer les clients
+        # 2. Clients
         clients_data = [
             {
                 'full_name': 'Kevin Casey',
@@ -201,7 +217,7 @@ def create_initial_data():
             db.refresh(client)
             clients[client_data['email']] = client
 
-        # 3. Créer les contrats
+        # 3. Contrats
         contracts_data = [
             {
                 'total_amount': 15000.00,
@@ -275,7 +291,7 @@ def create_initial_data():
             db.refresh(contract)
             contracts[i] = contract
 
-        # 4. Créer les événements
+        # 4. Événements
         events_data = [
             {
                 'name': 'Kevin Startup Launch',
@@ -390,7 +406,7 @@ def create_initial_data():
         print(f"   {len(events_data)} événements créés")
         print("\n📋 CRÉDENTIELS DE TEST:")
         print("   Commercial: bill.boquet@epicevents.com / password123")
-        print("   Support: kate.hastroff@epicevents.com / password123")
+        print("   Support:    kate.hastroff@epicevents.com / password123")
         print("   Management: julie.bernard@epicevents.com / admin123")
 
     except Exception as e:
@@ -402,9 +418,14 @@ def create_initial_data():
 
 
 if __name__ == "__main__":
-    print("🔄 Initialisation de la base de données Epicevents CRM...")
+    print("🔄 Outils base de données Epicevents CRM...")
+    print("1. Réinitialiser complètement la base (DROP + CREATE)")
+    print("2. Créer / mettre à jour les données de démonstration")
+    choice = input("Choix: ")
 
-    # Créer les données initiales
-    create_initial_data()
-
-    print("\n🎉 Installation terminée! Lancez l'application avec: python main.py")
+    if choice == "1":
+        reset_database()
+    elif choice == "2":
+        create_initial_data()
+    else:
+        print("❌ Option invalide")

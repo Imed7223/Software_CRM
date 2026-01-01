@@ -185,15 +185,18 @@ Depuis la racine du projet :
 
 ## 🖥️ Utilisation via CLI
 
-### 1. Initialiser l’application (données de démo)
+### 1. Supprimer toutes les tables (DROP) puis les recréer.
+     (⚠️ IRRÉVERSIBLE : toutes les données sont perdues).
+### 2. Initialiser l’application (données de démo)
 
-`python python init_database.py`
+`python python init_database.py
 
 text
 
 Cette commande :
-
-- Crée les tables nécessaires en base  
+-Donne 2 choix :
+-Soit, Supprimer toutes les tables (DROP) puis les recréer.
+- Soi, Crée les tables nécessaires en base  
 - Ajoute des utilisateurs de démo (MANAGEMENT / SALES / SUPPORT)  
 - Ajoute des clients, contrats et événements de test  
 
