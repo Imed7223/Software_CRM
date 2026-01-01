@@ -44,16 +44,16 @@ def menu_events(db, user):
             events = crud_events.get_all_events(db)
 
             # SUPPORT : voir uniquement ses propres événements si manage_own_events
-            if user.department == Department.SUPPORT and has_permission(user, "manage_own_events"):
+            if user.department == Department.SUPPORT and has_permission(user, "manage_own_events", "manage_events"):
                 events = [e for e in events if e.support_id == user.id]
 
             display_events(events)
 
         # 2. Ajouter un événement
         elif choice == "2":
-            # Le support ne peut pas créer d'événements (c'est le commercial / management)
-            if user.department == Department.SUPPORT or Department.MANAGEMENT:
-                print("❌ Le département support et management ne peuvent pas créer d'événements.")
+            # Le support ne peut pas créer d'événements (c'est le commercial).
+            if user.department == Department.SUPPORT or not has_permission(user, "create_own_events", "manage_events"):
+                print("❌ Vous n'avez pas la permission de créer d'événements.")
                 continue
 
             print("\n➕ Ajouter un événement:")
@@ -145,6 +145,9 @@ def menu_events(db, user):
 
         # 4. Modifier un événement
         elif choice == "4":
+            if not has_permission(user, "update_own_events", "manage_events", "manage_own_events"):
+                print("❌ Vous n'avez pas la permission de créer d'événements.")
+                continue
             event_id = input("\n✏️ ID de l'événement à modifier: ")
             if not validate_integer(event_id):
                 print("❌ ID invalide. Veuillez saisir un entier.")

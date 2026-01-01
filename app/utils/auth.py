@@ -46,11 +46,14 @@ def get_user_permissions(user: User):
             "manage_clients",
             "view_contracts",
             "create_contracts",
+            "add_payment",
+            "sign_contracts",
             "view_own_events",
+            "create_own_events",
+            "update_own_events",
         ],
         Department.SUPPORT: [
             "view_events",
-            "manage_events",
             "view_clients",
             "view_contracts",
             "manage_own_events",
@@ -59,7 +62,8 @@ def get_user_permissions(user: User):
             "view_all",
             "manage_users",
             "manage_contracts",
-            "manage_events ",
+            "manage_events",
+            "manage_clients",
         ],
     }
     return permissions.get(user.department, [])

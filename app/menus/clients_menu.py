@@ -33,10 +33,12 @@ def menu_clients(db, user):
 
         choice = input("Choisissez une option: ")
 
+        # Liste des clients
         if choice == "1":
             clients = crud_clients.get_all_clients(db)
             display_clients(clients)
 
+        # Ajouter des clients.
         elif choice == "2":
             # Seuls les commerciaux (et éventuellement management) peuvent créer des clients
             if not has_permission(user, "manage_clients"):
@@ -83,6 +85,7 @@ def menu_clients(db, user):
                 db.rollback()
                 print(f"❌ Erreur lors de la création du client. Vérifiez les valeurs saisies: {e}")
 
+        # Voir un client
         elif choice == "3":
             client_id = input("\n👁️ ID du client: ")
             if not validate_integer(client_id):
@@ -105,6 +108,7 @@ def menu_clients(db, user):
             except Exception:
                 print("❌ Erreur lors de la lecture du client.")
 
+        # modifier des clients.
         elif choice == "4":
             if not has_permission(user, "manage_clients"):
                 print("❌ Vous n'avez pas la permission de modifier des clients.")
@@ -160,6 +164,7 @@ def menu_clients(db, user):
                 print(f"❌ Erreur lors de la mise à jour du client: {e}")
                 db.rollback()
 
+        # supprimer des clients
         elif choice == "5":
             if not has_permission(user, "manage_clients"):
                 print("❌ Vous n'avez pas la permission de supprimer des clients.")
@@ -195,6 +200,7 @@ def menu_clients(db, user):
                 db.rollback()
                 print(f"❌ Erreur lors de la suppression du client: {e}")
 
+        # Filtres et recherche
         elif choice == "6":
             menu_client_filters(db, user)
 

@@ -187,7 +187,7 @@ Depuis la racine du projet :
 
 ### 1. Initialiser l’application (données de démo)
 
-python main.py setup --demo
+`python python init_database.py`
 
 text
 
