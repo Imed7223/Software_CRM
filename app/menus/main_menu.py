@@ -1,33 +1,9 @@
-from app.database.database import SessionLocal
-from app.utils.auth import authenticate_user
 from app.menus.users_menu import menu_users
 from app.menus.clients_menu import menu_clients
 from app.menus.contracts_menu import menu_contracts
 from app.menus.events_menu import menu_events
 from app.models.users import Department
 from app.utils.auth import get_user_permissions
-
-
-def login():
-    """Menu de connexion"""
-    db = SessionLocal()
-
-    print("\n" + "=" * 50)
-    print("        CONNEXION - EPICEVENTS CRM")
-    print("=" * 50)
-
-    email = input("Email: ")
-    password = input("Mot de passe: ")
-
-    user = authenticate_user(db, email, password)
-
-    if user:
-        print(f"\n✅ Bienvenue {user.full_name} ({user.department.value})")
-        return db, user
-    else:
-        print("\n❌ Identifiants incorrects")
-        db.close()
-        return None, None
 
 
 def main_menu(db, user):

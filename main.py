@@ -5,10 +5,11 @@ Point d'entrée principal
 import os
 import sys
 from pathlib import Path
+
 from app.menus.main_menu import main_menu
-from app.utils.auth import authenticate_user, create_access_token, decode_access_token
+from app.utils.auth import authenticate_user, create_access_token
 from app.models.users import User
-from app.utils.security import security_manager  # SecurityManager (tentatives login)
+from app.utils.security import security_manager  # tentatives login
 from app.database.database import SessionLocal
 from app.utils.logging_config import (
     setup_logging,
@@ -54,41 +55,10 @@ def init_app():
         sys.exit(1)
 
 
-def load_session_user():
-    """
-    Récupérer le token dans ~/.crm_token et renvoyer l'utilisateur si valide.
-    """
-    if not os.path.exists(SESSION_FILE):
-        return None
-
-    try:
-        with open(SESSION_FILE, "r", encoding="utf-8") as f:
-            token = f.read().strip()
-
-        payload = decode_access_token(token)
-        if not payload:
-            return None
-
-        email = payload.get("sub")
-        if not email:
-            return None
-
-        db = SessionLocal()
-        user = db.query(User).filter(User.email == email).first()
-        if not user:
-            log_warning(f"Utilisateur pour le token JWT introuvable: {email}")
-            return None
-
-        return db, user
-
-    except Exception as e:
-        log_error("Erreur chargement session", e)
-        return None
-
-
 def save_session_token(user: User):
     """
     Créer un JWT pour l'utilisateur et le stocker dans ~/.crm_token
+    (utilisé pour démo / debug, mais pas pour restaurer automatiquement la session)
     """
     token = create_access_token({
         "sub": user.email,
@@ -101,7 +71,7 @@ def save_session_token(user: User):
 
 
 def clear_session():
-    """Supprimer le fichier de session"""
+    """Supprimer le fichier de session (si besoin)"""
     if os.path.exists(SESSION_FILE):
         os.remove(SESSION_FILE)
         log_info("Fichier de session ~/.crm_token supprimé")
@@ -128,6 +98,7 @@ def login_flow():
         print(f"\n✅ Bienvenue {user.full_name} ({user.department.value})")
         log_info(f"Connexion réussie pour {email}")
         security_manager.record_successful_attempt(email)
+        # On génère et stocke quand même un JWT (pour démo / audit)
         save_session_token(user)
         return db, user
     else:
@@ -139,33 +110,18 @@ def login_flow():
 
 
 if __name__ == "__main__":
+    # Optionnel : si on passe "login" en argument, on force la suppression du token
     force_login = len(sys.argv) > 1 and sys.argv[1] == "login"
-
     logger = init_app()
 
-    db = None
-    user = None
-
     if force_login:
-        # On force la reconnexion : on supprime le fichier de session
         clear_session()
-    else:
-        # 1. Tenter de récupérer une session existante via JWT (~/.crm_token)
-        session = load_session_user()
-        if session:
-            db, user = session
-            print(f"\n🔐 Session restaurée : {user.full_name} ({user.department.value})")
-            log_info(f"Session restaurée pour {user.email}")
-        else:
-            db, user = None, None
 
-    # 2. Si pas de session valide ou si on a forcé login, lancer le process de connexion
+    db, user = login_flow()
     if not user:
-        db, user = login_flow()
-        if not user:
-            sys.exit(1)
+        sys.exit(1)
 
-    # 3. Lancer le menu principal
+    # Lancer le menu principal
     try:
         main_menu(db, user)
     except KeyboardInterrupt:
