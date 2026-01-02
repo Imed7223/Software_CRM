@@ -156,3 +156,15 @@ def search_contracts(db: Session, client_name: str = None, min_amount: float = N
         query = query.filter(Contract.is_signed == signed)
 
     return query.order_by(Contract.creation_date.desc()).all()
+
+
+def get_signed_contracts_by_client(db: Session, client_id: int):
+    """Récupérer les contrats signés pour un client donné."""
+    return (
+        db.query(Contract)
+        .filter(
+                Contract.client_id == client_id,
+                Contract.is_signed   # contrats signés uniquement
+        )
+        .all()
+    )

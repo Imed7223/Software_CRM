@@ -48,7 +48,13 @@ def menu_contracts(db, user):
         # 2. Ajouter un contrat
         elif choice == "2":
             # Le support ne doit pas créer de contrats
-            if user.department == Department.SUPPORT or not has_permission(user, "create_contracts", "manage_contracts"):
+            if (
+                    user.department == Department.SUPPORT
+                    or not (
+                    has_permission(user, "create_contracts")
+                    or has_permission(user, "manage_contracts")
+                            )
+                    ):
                 print("❌ Vous n'avez pas la permission de créer des contrats.")
                 continue
 
@@ -118,13 +124,13 @@ def menu_contracts(db, user):
                     print(f"  Créé le: {contract.creation_date}")
                 else:
                     print("❌ Contrat non trouvé")
-            except Exception:
-                print("❌ Erreur lors de la lecture du contrat.")
+            except Exception as e:
+                print("❌ Erreur lors de la lecture du contrat.", e)
 
         # 4. Modifier un contrat
         elif choice == "4":
-            # Le support ne doit pas modifier de contrats
-            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts", "manage_contracts"):
+            # Vérif permission globale
+            if not has_permission(user, "manage_contracts") and not has_permission(user, "update_own_contracts"):
                 print("❌ Vous n'avez pas la permission de modifier des contrats.")
                 continue
 
@@ -132,11 +138,25 @@ def menu_contracts(db, user):
             if not validate_integer(contract_id):
                 print("❌ ID invalide. Veuillez saisir un nombre entier.")
                 continue
+
             try:
-                existing = crud_contracts.get_contract_by_id(db, int(contract_id))
+                contract_id_int = int(contract_id)
+                existing = crud_contracts.get_contract_by_id(db, contract_id_int)
                 if not existing:
                     print("❌ Contrat non trouvé")
                     continue
+
+                # SALES : ne peut modifier que ses propres contrats
+                if user.department == Department.SALES:
+                    if not has_permission(user, "update_own_contracts"):
+                        print("❌ Vous n'avez pas la permission de modifier des contrats.")
+                        continue
+                    if existing.commercial_id != user.id:
+                        print("❌ Vous ne pouvez modifier que vos propres contrats.")
+                        continue
+
+                # SUPPORT : n'a aucune des permissions → bloqué au début
+                # MANAGEMENT : a manage_contracts → peut tout modifier
 
                 print(f"Modification du contrat {existing.id}")
                 print("Laissez vide pour ne pas modifier")
@@ -148,18 +168,18 @@ def menu_contracts(db, user):
                     if not validate_amount(new_total):
                         print("❌ Montant total invalide.")
                         continue
-                    updates['total_amount'] = float(new_total)
+                    updates["total_amount"] = float(new_total)
 
                 new_remaining = input(f"Montant restant [{existing.remaining_amount}]: ")
                 if new_remaining:
                     if not validate_amount(new_remaining):
                         print("❌ Montant restant invalide.")
                         continue
-                    updates['remaining_amount'] = float(new_remaining)
+                    updates["remaining_amount"] = float(new_remaining)
 
                 signed_input = input(f"Signé? (o/n) [{'o' if existing.is_signed else 'n'}]: ")
                 if signed_input:
-                    updates['is_signed'] = signed_input.lower() == 'o'
+                    updates["is_signed"] = signed_input.lower() == "o"
 
                 if updates:
                     crud_contracts.update_contract(db, existing.id, **updates)
@@ -167,14 +187,14 @@ def menu_contracts(db, user):
                 else:
                     print("⚠️  Aucune modification")
 
-            except Exception:
+            except Exception as e:
                 db.rollback()
-                print("❌ Erreur lors de la mise à jour du contrat.")
+                print(f"❌ Erreur lors de la mise à jour du contrat: {e}")
 
         # 5. Signer un contrat
         elif choice == "5":
-            # Le support ne doit pas signer de contrats
-            if user.department == Department.SUPPORT or not has_permission(user, "sign_contracts", "manage_contracts"):
+            # Personne sans permission ne peut signer
+            if not has_permission(user, "sign_own_contracts") and not has_permission(user, "manage_contracts"):
                 print("❌ Vous n'avez pas la permission de signer des contrats.")
                 continue
 
@@ -182,12 +202,29 @@ def menu_contracts(db, user):
             if not validate_integer(contract_id):
                 print("❌ ID invalide. Veuillez saisir un nombre entier.")
                 continue
+
             try:
-                updated = crud_contracts.sign_contract(db, int(contract_id))
+                contract_id_int = int(contract_id)
+                existing = crud_contracts.get_contract_by_id(db, contract_id_int)
+                if not existing:
+                    print("❌ Contrat non trouvé")
+                    continue
+
+                # SALES : ne peut signer que ses propres contrats
+                if user.department == Department.SALES:
+                    if existing.commercial_id != user.id:
+                        print("❌ Vous ne pouvez signer que vos propres contrats.")
+                        continue
+
+                # SUPPORT n'a aucune des permissions → bloqué au début
+                # MANAGEMENT (manage_contracts) → peut signer tous les contrats
+
+                updated = crud_contracts.sign_contract(db, contract_id_int)
                 if updated:
                     print("✅ Contrat signé")
                 else:
                     print("❌ Contrat non trouvé")
+
             except Exception:
                 db.rollback()
                 print("❌ Erreur lors de la signature du contrat.")
@@ -195,7 +232,13 @@ def menu_contracts(db, user):
         # 6. Ajouter un paiement
         elif choice == "6":
             # Le support ne doit pas ajouter de paiements
-            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts", "add_payment"):
+            if (
+                    user.department == Department.SUPPORT
+                    or not (
+                    has_permission(user, "manage_contracts")
+                    or has_permission(user, "update_own_contracts")
+                            )
+                    ):
                 print("❌ Vous n'avez pas la permission d'ajouter des paiements.")
                 continue
 
@@ -225,8 +268,8 @@ def menu_contracts(db, user):
 
         # 7. Supprimer un contrat
         elif choice == "7":
-            # Le support ne doit pas supprimer de contrats
-            if user.department == Department.SUPPORT or not has_permission(user, "manage_contracts"):
+            # Personne sans permission ne peut supprimer
+            if not has_permission(user, "manage_contracts") and not has_permission(user, "manage_own_contracts"):
                 print("❌ Vous n'avez pas la permission de supprimer des contrats.")
                 continue
 
@@ -234,18 +277,36 @@ def menu_contracts(db, user):
             if not validate_integer(contract_id):
                 print("❌ ID invalide. Veuillez saisir un nombre entier.")
                 continue
+
             try:
-                existing = crud_contracts.get_contract_by_id(db, int(contract_id))
+                contract_id_int = int(contract_id)
+                existing = crud_contracts.get_contract_by_id(db, contract_id_int)
                 if not existing:
                     print("❌ Contrat non trouvé")
                     continue
 
+                # SALES : ne peut supprimer que ses propres contrats
+                if user.department == Department.SALES:
+                    if not has_permission(user, "manage_own_contracts"):
+                        print("❌ Vous n'avez pas la permission de supprimer des contrats.")
+                        continue
+                    if existing.commercial_id != user.id:
+                        print("❌ Vous ne pouvez supprimer que vos propres contrats.")
+                        continue
+
+                # SUPPORT n'a aucune des permissions → bloqué au début
+                # MANAGEMENT a manage_contracts → peut tout supprimer
+
                 confirm = input(f"Confirmer la suppression du contrat {existing.id}? (o/n): ")
-                if confirm.lower() == 'o':
-                    crud_contracts.delete_contract(db, existing.id)
-                    print("✅ Contrat supprimé")
+                if confirm.lower() == "o":
+                    deleted = crud_contracts.delete_contract(db, existing.id)
+                    if deleted:
+                        print("✅ Contrat supprimé")
+                    else:
+                        print("❌ Impossible de supprimer ce contrat.")
                 else:
                     print("❌ Annulé")
+
             except Exception:
                 db.rollback()
                 print("❌ Erreur lors de la suppression du contrat.")
@@ -269,9 +330,9 @@ def menu_contracts(db, user):
                 if summary['total_amount'] > 0:
                     percent = (summary['paid_amount'] / summary['total_amount']) * 100
                     print(f"  Pourcentage payé: {percent:.1f}%")
-            except Exception:
+            except Exception as e:
                 db.rollback()
-                print("❌ Erreur lors du calcul des statistiques.")
+                print("❌ Erreur lors du calcul des statistiques.", e)
 
         elif choice == "0":
             break

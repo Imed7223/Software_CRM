@@ -4,11 +4,15 @@ Point d'entrée principal
 """
 import os
 import sys
-from pathlib import Path
 
 from app.menus.main_menu import main_menu
-from app.utils.auth import authenticate_user, create_access_token
+from app.utils.auth import (
+    authenticate_user,
+    create_access_token,
+    decode_access_token,
+)
 from app.models.users import User
+from app.crud.crud_users import get_user_by_email
 from app.utils.security import security_manager  # tentatives login
 from app.database.database import SessionLocal
 from app.utils.logging_config import (
@@ -18,11 +22,14 @@ from app.utils.logging_config import (
     log_warning,
     log_debug,
 )
+from app.utils.session import (
+    save_session_token,
+    load_session_token,
+    clear_session,
+)
 
 # Ajouter le répertoire parent au path pour les imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-SESSION_FILE = os.path.join(Path.home(), ".crm_token")
 
 
 def init_app():
@@ -55,28 +62,6 @@ def init_app():
         sys.exit(1)
 
 
-def save_session_token(user: User):
-    """
-    Créer un JWT pour l'utilisateur et le stocker dans ~/.crm_token
-    (utilisé pour démo / debug, mais pas pour restaurer automatiquement la session)
-    """
-    token = create_access_token({
-        "sub": user.email,
-        "role": user.department.value,
-        "user_id": user.id,
-    })
-    with open(SESSION_FILE, "w", encoding="utf-8") as f:
-        f.write(token)
-    log_debug(f"Token de session sauvegardé pour {user.email} dans {SESSION_FILE}")
-
-
-def clear_session():
-    """Supprimer le fichier de session (si besoin)"""
-    if os.path.exists(SESSION_FILE):
-        os.remove(SESSION_FILE)
-        log_info("Fichier de session ~/.crm_token supprimé")
-
-
 def login_flow():
     """
     Processus de connexion classique (email/mot de passe)
@@ -98,8 +83,15 @@ def login_flow():
         print(f"\n✅ Bienvenue {user.full_name} ({user.department.value})")
         log_info(f"Connexion réussie pour {email}")
         security_manager.record_successful_attempt(email)
-        # On génère et stocke quand même un JWT (pour démo / audit)
-        save_session_token(user)
+
+        # Générer un JWT et le sauvegarder pour restaurer la session plus tard
+        token = create_access_token({
+            "sub": user.email,
+            "role": user.department.value,
+            "user_id": user.id,
+        })
+        save_session_token(token, user.email)
+
         return db, user
     else:
         print("\n❌ Identifiants incorrects")
@@ -109,19 +101,53 @@ def login_flow():
         return None, None
 
 
+def load_session_user(db):
+    """
+    Tente de restaurer une session à partir du fichier ~/.crm_token.
+    Retourne un User ou None.
+    """
+    token = load_session_token()
+    if not token:
+        return None
+
+    try:
+        payload = decode_access_token(token)
+        if not payload:
+            # decode_access_token affiche déjà le message (expiré / invalide)
+            clear_session()
+            return None
+
+        email = payload.get("sub")
+        if not email:
+            return None
+
+        user = get_user_by_email(db, email)
+        if not user:
+            return None
+
+        log_info(f"Session restaurée pour {email} depuis le token")
+        return user
+
+    except Exception as e:
+        log_error("Erreur lors de la restauration de session", e)
+        print(f"🔑 Erreur lors de la restauration de session: {e}")
+        return None
+
+
 if __name__ == "__main__":
-    # Optionnel : si on passe "login" en argument, on force la suppression du token
-    force_login = len(sys.argv) > 1 and sys.argv[1] == "login"
     logger = init_app()
 
-    if force_login:
-        clear_session()
+    db = SessionLocal()
+    user = load_session_user(db)  # tente de restaurer la session
 
-    db, user = login_flow()
+    if not user:
+        # pas de session valide → login classique
+        db.close()
+        db, user = login_flow()
+
     if not user:
         sys.exit(1)
 
-    # Lancer le menu principal
     try:
         main_menu(db, user)
     except KeyboardInterrupt:

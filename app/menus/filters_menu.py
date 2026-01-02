@@ -216,31 +216,55 @@ def menu_event_filters(db, user):
 
             elif choice == "3":
                 print("\n📅 Événements par période:")
-                start_str = input("Date début (YYYY-MM-DD, vide pour aujourd'hui): ")
-                end_str = input("Date fin (YYYY-MM-DD, vide pour +30 jours): ")
+                today = datetime.today()
+                default_start = today
+                default_end = today + timedelta(days=30)
 
-                try:
-                    start_date = datetime.strptime(start_str, '%Y-%m-%d') if start_str else datetime.now()
-                    end_date = datetime.strptime(end_str, '%Y-%m-%d') if end_str else datetime.now() + timedelta(
-                        days=30)
+                def parse_date_input(prompt, default_dt):
+                    value = input(prompt).strip()
 
-                    events = crud_events.get_events_by_date_range(db, start_date, end_date)
-                    if events:
-                        print(f"\n📅 Événements du {start_date.date()} au {end_date.date()} ({len(events)}):")
-                        for e in events:
-                            print(f"  {e.id}: {e.name} - {e.start_date} - {e.location}")
-                    else:
-                        print("📭 Aucun événement sur cette période")
-                except Exception as e:
-                    print(f"❌ Erreur de date: {e}")
+                    if value == "":
+                        return default_dt
+
+                    try:
+                        return datetime.strptime(value, "%Y-%m-%d")
+
+                    except ValueError:
+                        print("❌ Erreur: format attendu YYYY-MM-DD (ex: 2025-01-15).")
+                        return None
+
+                start_date = parse_date_input("Date début (YYYY-MM-DD, vide pour aujourd'hui): ", default_start)
+                if start_date is None:
+                    continue
+
+                end_date = parse_date_input("Date fin (YYYY-MM-DD, vide pour +30 jours): ", default_end)
+                if end_date is None:
+                    continue
+
+                if end_date < start_date:
+                    print("❌ Erreur: la date de fin doit être après la date de début.")
+                    continue
+
+                events = crud_events.get_events_by_date_range(db, start_date, end_date)
+                if events:
+                    print(f"\n📅 Événements du {start_date.date()} au {end_date.date()} ({len(events)}):")
+
+                    for e in events:
+                        print(f"  {e.id}: {e.name} - {e.start_date} - {e.location}")
+                else:
+                    print("📭 Aucun événement sur cette période")
 
             elif choice == "4":
-                location = input("\n📍 Lieu à rechercher: ")
+                location = input("\n📍 Lieu à rechercher: ").strip()
+                if not location:
+                    print("❌ Vous devez saisir un lieu.")
+                    continue
+
                 events = crud_events.get_events_by_location(db, location)
                 if events:
                     print(f"\n📍 Événements à {location} ({len(events)}):")
                     for e in events:
-                        print(f"  {e.id}: {e.name} - {e.start_date}")
+                        print(f"  {e.id}: {e.name} - {e.start_date} - {e.location}")
                 else:
                     print(f"📭 Aucun événement à {location}")
 

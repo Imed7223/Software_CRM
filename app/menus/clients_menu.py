@@ -41,7 +41,7 @@ def menu_clients(db, user):
         # Ajouter des clients.
         elif choice == "2":
             # Seuls les commerciaux (et éventuellement management) peuvent créer des clients
-            if not has_permission(user, "manage_clients"):
+            if not has_permission(user, "manage_own_clients") and not has_permission(user, "manage_clients"):
                 print("❌ Vous n'avez pas la permission d'ajouter des clients.")
                 continue
 
@@ -108,9 +108,10 @@ def menu_clients(db, user):
             except Exception:
                 print("❌ Erreur lors de la lecture du client.")
 
-        # modifier des clients.
+        # 4. Modifier des clients
         elif choice == "4":
-            if not has_permission(user, "manage_clients"):
+            # Personne sans permission ne peut modifier
+            if not has_permission(user, "manage_clients") and not has_permission(user, "manage_own_clients"):
                 print("❌ Vous n'avez pas la permission de modifier des clients.")
                 continue
 
@@ -120,15 +121,22 @@ def menu_clients(db, user):
                 continue
 
             try:
-                existing = crud_clients.get_client_by_id(db, int(client_id))
+                client_id_int = int(client_id)
+                existing = crud_clients.get_client_by_id(db, client_id_int)
                 if not existing:
                     print("❌ Client non trouvé")
                     continue
 
-                # Un commercial ne peut modifier que ses propres clients
-                if user.department == Department.SALES and existing.commercial_id != user.id:
-                    print("❌ Vous ne pouvez modifier que vos propres clients.")
-                    continue
+                # SALES : ne peut modifier que ses propres clients
+                if user.department == Department.SALES:
+                    if not has_permission(user, "manage_own_clients"):
+                        print("❌ Vous n'avez pas la permission de modifier des clients.")
+                        continue
+                    if existing.commercial_id != user.id:
+                        print("❌ Vous ne pouvez modifier que vos propres clients.")
+                        continue
+
+                # MANAGEMENT : a manage_clients → peut tout modifier
 
                 print(f"Modification de {existing.full_name}")
                 print("Laissez vide pour ne pas modifier")
@@ -137,22 +145,22 @@ def menu_clients(db, user):
 
                 new_name = input(f"Nom [{existing.full_name}]: ")
                 if new_name:
-                    updates['full_name'] = new_name
+                    updates["full_name"] = new_name
 
                 new_email = input(f"Email [{existing.email}]: ")
                 if new_email:
-                    updates['email'] = new_email
+                    updates["email"] = new_email
 
                 new_phone = input(f"Téléphone [{existing.phone}]: ")
                 if new_phone:
                     if not validate_phone(new_phone):
                         print("❌ Téléphone invalide (format FR attendu)")
                         continue
-                    updates['phone'] = format_phone_number(new_phone)
+                    updates["phone"] = format_phone_number(new_phone)
 
                 new_company = input(f"Entreprise [{existing.company_name}]: ")
                 if new_company:
-                    updates['company_name'] = new_company
+                    updates["company_name"] = new_company
 
                 if updates:
                     crud_clients.update_client(db, existing.id, **updates)
@@ -161,12 +169,13 @@ def menu_clients(db, user):
                     print("⚠️  Aucune modification")
 
             except Exception as e:
-                print(f"❌ Erreur lors de la mise à jour du client: {e}")
                 db.rollback()
+                print(f"❌ Erreur lors de la mise à jour du client: {e}")
 
-        # supprimer des clients
+        # 5. Supprimer des clients
         elif choice == "5":
-            if not has_permission(user, "manage_clients"):
+            # Personne sans permission ne peut supprimer
+            if not has_permission(user, "manage_clients") and not has_permission(user, "manage_own_clients"):
                 print("❌ Vous n'avez pas la permission de supprimer des clients.")
                 continue
 
@@ -176,18 +185,26 @@ def menu_clients(db, user):
                 continue
 
             try:
-                existing = crud_clients.get_client_by_id(db, int(client_id))
+                client_id_int = int(client_id)
+                existing = crud_clients.get_client_by_id(db, client_id_int)
                 if not existing:
                     print("❌ Client non trouvé")
                     continue
 
-                # Un commercial ne peut supprimer que ses propres clients
-                if user.department == Department.SALES or Department.SALES:
-                    print("❌ Vous ne pouvez pas supprimer les clients.")
-                    continue
+                # Si SALES : ne peut supprimer que ses propres clients
+                if user.department == Department.SALES:
+                    if not has_permission(user, "manage_own_clients"):
+                        print("❌ Vous n'avez pas la permission de supprimer des clients.")
+                        continue
+                    if existing.commercial_id != user.id:
+                        print("❌ Vous ne pouvez supprimer que vos propres clients.")
+                        continue
+
+                # Si MANAGEMENT : il a manage_clients → peut tout supprimer
+                # SUPPORT n'arrive jamais ici car filtré au début
 
                 confirm = input(f"Confirmer la suppression de {existing.full_name}? (o/n): ")
-                if confirm.lower() == 'o':
+                if confirm.lower() == "o":
                     deleted = crud_clients.delete_client(db, existing.id)
                     if deleted:
                         print("✅ Client supprimé")

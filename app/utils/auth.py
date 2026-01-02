@@ -43,14 +43,13 @@ def get_user_permissions(user: User):
     permissions = {
         Department.SALES: [
             "view_clients",
-            "manage_clients",
+            "manage_own_clients",
             "view_contracts",
             "create_contracts",
-            "add_payment",
-            "sign_contracts",
+            "update_own_contracts",
+            "sign_own_contracts",
             "view_own_events",
             "create_own_events",
-            "update_own_events",
         ],
         Department.SUPPORT: [
             "view_events",
