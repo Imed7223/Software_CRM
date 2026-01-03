@@ -6,6 +6,7 @@ import os
 import sys
 
 from app.menus.main_menu import main_menu
+from app.models.audit import AuditLog
 from app.utils.auth import (
     authenticate_user,
     create_access_token,
@@ -72,6 +73,19 @@ def login_flow():
 
     # Vérifier le nombre de tentatives (SecurityManager)
     if not security_manager.check_login_attempts(email):
+        # Audit : login bloqué (trop de tentatives)
+        log = AuditLog(
+            user_id=0,
+            username=email,
+            action="LOGIN_BLOCKED",
+            entity_type="USER",
+            entity_id=0,  # ✅ au lieu de None
+            details="Trop de tentatives de connexion",
+            ip_address="127.0.0.1",
+        )
+        db.add(log)
+        db.commit()
+
         db.close()
         return None, None
 
@@ -83,6 +97,19 @@ def login_flow():
         log_info(f"Connexion réussie pour {email}")
         security_manager.record_successful_attempt(email)
 
+        # Audit : login réussi
+        log = AuditLog(
+            user_id=user.id,
+            username=user.full_name,
+            action="LOGIN",
+            entity_type="USER",
+            entity_id=user.id,
+            details="Connexion réussie depuis CLI",
+            ip_address="127.0.0.1",
+        )
+        db.add(log)
+        db.commit()
+        print(log)
         # Générer un JWT et le sauvegarder pour restaurer la session plus tard
         token = create_access_token({
             "sub": user.email,
@@ -96,6 +123,20 @@ def login_flow():
         print("\n❌ Identifiants incorrects")
         log_warning(f"Tentative de connexion échouée pour {email}")
         security_manager.record_failed_attempt(email)
+
+        # Audit : login échoué
+        log = AuditLog(
+            user_id=0,
+            username=email,
+            action="LOGIN_FAILED",
+            entity_type="USER",
+            entity_id=0,
+            details="Mot de passe ou email incorrect",
+            ip_address="127.0.0.1",
+        )
+        db.add(log)
+        db.commit()
+
         db.close()
         return None, None
 
