@@ -4,7 +4,7 @@ from app.menus.contracts_menu import menu_contracts
 from app.menus.events_menu import menu_events
 from app.models.users import Department
 from app.utils.auth import get_user_permissions
-from app.utils.session import clear_session # importe la fonction qui supprime ~/.crm_token
+from app.utils.session import clear_session  # importe la fonction qui supprime ~/.crm_token
 
 
 def main_menu(db, user):
@@ -36,7 +36,7 @@ def main_menu(db, user):
             elif choice == "4" and user.department == Department.MANAGEMENT:
                 menu_users(db, user)
             elif choice == "9":
-                show_user_profile(db, user)
+                show_user_profile(user)
             elif choice == "11":
                 print("\n👋 Au revoir !")
                 break
@@ -50,7 +50,7 @@ def main_menu(db, user):
         db.close()
 
 
-def show_user_profile(db, user):
+def show_user_profile(user):
     """Afficher le profil de l'utilisateur"""
     print("\n" + "=" * 50)
     print(f"        MON PROFIL - {user.full_name}")

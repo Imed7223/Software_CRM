@@ -201,7 +201,7 @@ def menu_clients(db, user):
                         continue
 
                 # Si MANAGEMENT : il a manage_clients → peut tout supprimer
-                # SUPPORT n'arrive jamais ici car filtré au début
+                # SUPPORT n'arrive jamais ici, car filtré au début
 
                 confirm = input(f"Confirmer la suppression de {existing.full_name}? (o/n): ")
                 if confirm.lower() == "o":

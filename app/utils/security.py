@@ -71,7 +71,8 @@ class SecurityManager:
         if email in self.login_attempts:
             del self.login_attempts[email]
 
-    def validate_session(self, last_activity: datetime) -> bool:
+    @staticmethod
+    def validate_session(last_activity: datetime) -> bool:
         """
         Valide une session utilisateur
 

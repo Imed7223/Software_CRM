@@ -6,7 +6,7 @@ from app.models.users import User
 
 
 def create_contract(db: Session, total_amount: float, remaining_amount: float,
-                    is_signed: bool, client_id: int, commercial_id: int, user_id):
+                    is_signed: bool, client_id: int, commercial_id: int):
     """Créer un nouveau contrat"""
     # Vérifications
     if remaining_amount > total_amount:

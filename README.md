@@ -1,6 +1,7 @@
 # Software CRM 🚀
 
-Application de gestion clientèle (CRM) pour l'entreprise EpicEvents, développée en **Python** avec **PostgreSQL**.
+Application de gestion clientèle (CRM) pour l'entreprise EpicEvents,
+développée en **Python** avec **PostgreSQL**.
 
 ---
 
@@ -96,7 +97,7 @@ text
 ### Prérequis
 
 - Python **3.9+** (testé en 3.13.9)  
-- PostgreSQL **12+**  
+- PostgresSQL **12+**  
 - `pip` installé  
 
 ### 1. Cloner le projet
@@ -140,12 +141,32 @@ text
 
 ### 5. Créer les bases de données
 
-createdb epicevents
-createdb epicevents_test
+#### Option A : Ligne de commande (psql)
+```bash
+# Base principale
+psql -U postgres -c "CREATE DATABASE epicevents;"
 
-text
+# Base test (pour pytest)
+psql -U postgres -c "CREATE DATABASE epicevents_test;"
+```
+#### Option B : pgAdmin / DBeaver
 
----
+Connecte-toi à postgres://postgres:password@localhost:5432
+Crée 2 bases :
+
+epicevents (prod)
+
+epicevents_test (tests)
+
+#### Option C : Windows (cmd/PowerShell)
+```bash
+psql -U postgres -c "CREATE DATABASE epicevents;"
+psql -U postgres -c "CREATE DATABASE epicevents_test;"
+```
+Vérification
+```bash
+psql -U postgres -l | grep epicevents
+```
 
 ## 🧪 Lancer les tests & mesurer la couverture
 
@@ -156,13 +177,13 @@ Les tests sont organisés en :
 
 Lancer toute la suite avec coverage :
 
-`coverage run -m pytest`
-`coverage report -m`
-`coverage html`
+`python -m coverage run -m pytest`
+`python -m coverage report -m`
+`python -m coverage html`
 
 text
 
--`coverage report -m` affiche la couverture en console (≈ **83 %** actuellement).  
+- `coverage report -m` affiche la couverture en console (≈ **82 %** actuellement).  
 - `coverage html` génère un rapport détaillé dans `htmlcov/` (ouvrir `htmlcov/index.html` dans un navigateur).  
 ---
 
@@ -171,11 +192,10 @@ text
 Le projet utilise **flake8** pour vérifier le respect des conventions PEP8.
 
 ### Installation
-
-pip install flake8
-
 text
-
+```bash
+pip install flake8
+```
 ### Lancer l’analyse flake8
 
 Depuis la racine du projet :
@@ -189,13 +209,13 @@ Depuis la racine du projet :
      (⚠️ IRRÉVERSIBLE : toutes les données sont perdues).
 ### 2. Initialiser l’application (données de démo)
 
-`python python init_database.py
+`python python init_database.py`
 
 text
 
-Cette commande :
--Donne 2 choix :
--Soit, Supprimer toutes les tables (DROP) puis les recréer.
+ Cette commande/
+- Donne 2 choix :
+- Soit, Supprimer toutes les tables (DROP) puis les recréer.
 - Soi, Crée les tables nécessaires en base  
 - Ajoute des utilisateurs de démo (MANAGEMENT / SALES / SUPPORT)  
 - Ajoute des clients, contrats et événements de test  

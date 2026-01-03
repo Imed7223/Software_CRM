@@ -99,7 +99,7 @@ def menu_contracts(db, user):
 
                 new_contract = crud_contracts.create_contract(
                     db, total, remaining, is_signed, client_id, commercial_id
-                )
+                    )
                 print(f"✅ Contrat créé: {new_contract.id}")
             except Exception:
                 db.rollback()
@@ -194,7 +194,7 @@ def menu_contracts(db, user):
         # 5. Signer un contrat
         elif choice == "5":
             # Personne sans permission ne peut signer
-            if not has_permission(user, "sign_own_contracts") and not has_permission(user, "manage_contracts"):
+            if not has_permission(user, "sign_own_contracts"):
                 print("❌ Vous n'avez pas la permission de signer des contrats.")
                 continue
 
@@ -295,7 +295,7 @@ def menu_contracts(db, user):
                         continue
 
                 # SUPPORT n'a aucune des permissions → bloqué au début
-                # MANAGEMENT a manage_contracts → peut tout supprimer
+                # MANAGEMENT à manage_contracts → peut tout supprimer
 
                 confirm = input(f"Confirmer la suppression du contrat {existing.id}? (o/n): ")
                 if confirm.lower() == "o":

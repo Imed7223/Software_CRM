@@ -1,5 +1,4 @@
 # app/utils/auth.py
-
 import os
 from datetime import datetime, timedelta, UTC
 import bcrypt
@@ -18,12 +17,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 
 
 def authenticate_user(db: Session, email: str, password: str):
-    """Authentifier un utilisateur par email / mot de passe."""
     user = db.query(User).filter(User.email == email).first()
-    if not user:
-        return None
-
-    if verify_password(user.hashed_password, password):
+    if user and verify_password(user.hashed_password, password):
         return user
     return None
 
@@ -79,19 +74,17 @@ def require_permission(permission: str):
 
     Usage :
         @require_permission("manage_users")
-        def menu_users(user, db):
+        def menu_users (user, db) :
             ...
     """
 
     def decorator(func):
         def wrapper(user, *args, **kwargs):
             if not has_permission(user, permission):
-                print("❌ Permission refusée. Accès non autorisé.")
+                print("❌ Permission refusée.")
                 return None
             return func(user, *args, **kwargs)
-
         return wrapper
-
     return decorator
 
 

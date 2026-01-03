@@ -11,7 +11,6 @@ from app.utils.auth import (
     create_access_token,
     decode_access_token,
 )
-from app.models.users import User
 from app.crud.crud_users import get_user_by_email
 from app.utils.security import security_manager  # tentatives login
 from app.database.database import SessionLocal

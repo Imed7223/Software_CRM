@@ -54,7 +54,7 @@ def test_log_levels_with_mocked_sentry(monkeypatch, capsys):
     logging_config.log_info("Info message")
     # log_warning -> doit appeler capture_message
     logging_config.log_warning("Warn message")
-    # log_error avec exception -> doit appeler capture_exception
+    # log_error avec exception >>> doit appeler capture_exception
     try:
         raise ValueError("Boom")
     except ValueError as e:
@@ -93,16 +93,17 @@ class DummySentry:
     def capture_message(self, msg, level="error"):
         self.captured_msg.append((msg, level))
 
-    def push_scope(self):
+    @staticmethod
+    def push_scope():
         # contexte minimal pour le with
         class ScopeCtx:
-            def __enter__(self_inner):
+            def __enter__(self):
                 class Scope:
                     def set_extra(self, k, v):
                         pass
                 return Scope()
 
-            def __exit__(self_inner, exc_type, exc, tb):
+            def __exit__(self, exc_type, exc, tb):
                 pass
 
         return ScopeCtx()

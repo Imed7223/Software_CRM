@@ -27,7 +27,7 @@ def setup_logging():
 
     logger = logging.getLogger('epicevents')
     # Aligner le niveau du logger applicatif sur LOG_LEVEL
-    logger.setLevel(log_level)  # <-- ajoute cette ligne
+    logger.setLevel(log_level)
 
     logger.info(f"Logging configuré avec le niveau: {log_level}")
 

@@ -12,7 +12,7 @@ def validate_email(email: str):
 def validate_phone(phone: str):
     """Valider un numéro de téléphone"""
     pattern = r'^(\+33|0)[1-9](\d{2}){4}$'
-    cleaned = re.sub(r'[\.\s\-]', '', phone)
+    cleaned = re.sub(r'[.\s-]', '', phone)
     return bool(re.match(pattern, cleaned))
 
 
@@ -53,7 +53,7 @@ def validate_integer(value: str):
 
 def clean_phone_number(phone: str):
     """Nettoyer un numéro de téléphone"""
-    return re.sub(r'[\.\s\-]', '', phone)
+    return re.sub(r'[.\s-]', '', phone)
 
 
 def format_phone_number(phone: str):
