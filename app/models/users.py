@@ -29,4 +29,4 @@ class User(Base):
     supported_events = relationship("Event", back_populates="support_contact")
 
     def __repr__(self):
-        return f"<User {self.employee_id}:  name='{self.full_name}', department={self.department})>"
+        return f"<(User {self.employee_id}:  name='{self.full_name}', department={self.department})>"

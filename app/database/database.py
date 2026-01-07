@@ -19,7 +19,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 # Créer l'engine
 engine = create_engine(
     DATABASE_URL,
-    echo=False,
+    echo=False,       # Désactive l’affichage de toutes les requêtes SQL dans la console
     pool_pre_ping=True,
     pool_recycle=3600
 )

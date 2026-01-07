@@ -209,7 +209,7 @@ Depuis la racine du projet :
      (⚠️ IRRÉVERSIBLE : toutes les données sont perdues).
 ### 2. Initialiser l’application (données de démo)
 
-`python python init_database.py`
+`python init_database.py`
 
 text
 

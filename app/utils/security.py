@@ -4,8 +4,6 @@ Fonctions de sécurité avancées
 import os
 from datetime import datetime, timedelta
 from typing import Dict
-from sqlalchemy.orm import Session
-from app.crud import crud_users
 
 
 class SecurityManager:
@@ -89,33 +87,3 @@ class SecurityManager:
 
 # Instance globale
 security_manager = SecurityManager()
-
-
-def audit_log(db: Session, user_id: int, action: str, details: str = ""):
-    """
-    Journal d'audit des actions utilisateurs
-
-    Args:
-        db: Session de base de données
-        user_id: ID de l'utilisateur
-        action: Action effectuée
-        details: Détails supplémentaires
-    """
-    user = crud_users.get_user_by_id(db, user_id)
-    username = user.full_name if user else f"User {user_id}"
-
-    log_entry = {
-        'timestamp': datetime.now(),
-        'user_id': user_id,
-        'username': username,
-        'action': action,
-        'details': details,
-        'ip_address': '127.0.0.1'  # À remplacer par l'IP réelle en production
-    }
-
-    # Log dans un fichier
-    log_file = 'audit.log'
-    with open(log_file, 'a', encoding='utf-8') as f:
-        f.write(f"{log_entry['timestamp']} - {username} - {action} - {details}\n")
-
-    print(f"📝 Audit: {username} - {action}")
